@@ -25,7 +25,7 @@ export default function GuestLayout() {
   // =========================================================
 
   const fullName =
-    localStorage.getItem("full_name") || "Guest";
+    sessionStorage.getItem("full_name") || "Guest";
 
   const initials = fullName
     .split(" ")
@@ -58,10 +58,10 @@ export default function GuestLayout() {
   // =========================================================
 
   function handleLogout() {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token_type");
-    localStorage.removeItem("role");
-    localStorage.removeItem("full_name");
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("token_type");
+    sessionStorage.removeItem("role");
+    sessionStorage.removeItem("full_name");
 
     navigate("/");
   }

@@ -29,7 +29,7 @@ export default function GuestProductDetailsPage() {
       setLoading(true);
       setError("");
 
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       if (!token) {
         throw new Error("You are not authenticated.");

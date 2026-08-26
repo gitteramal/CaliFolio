@@ -48,7 +48,7 @@ export default function OverviewPage() {
 
 async function loadPublishedProductsCount() {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) return;
 
@@ -85,7 +85,7 @@ async function loadPublishedProductsCount() {
           "http://127.0.0.1:8000/users/founders",
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem(
+              Authorization: `Bearer ${sessionStorage.getItem(
                 "access_token"
               )}`,
             },
@@ -122,7 +122,7 @@ useEffect(() => {
     setPendingLoading(true);
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       const res = await fetch(
         "http://127.0.0.1:8000/products/admin/pending-review",
@@ -156,7 +156,7 @@ useEffect(() => {
   setDraftLoading(true);
 
   try {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     const res = await fetch(
       "http://127.0.0.1:8000/products/admin/drafts",
@@ -227,7 +227,7 @@ useEffect(() => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem(
+            Authorization: `Bearer ${sessionStorage.getItem(
               "access_token"
             )}`,
           },
@@ -261,7 +261,7 @@ useEffect(() => {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem(
+            Authorization: `Bearer ${sessionStorage.getItem(
               "access_token"
             )}`,
           },

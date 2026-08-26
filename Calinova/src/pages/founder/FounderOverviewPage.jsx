@@ -18,7 +18,7 @@ export default function FounderOverviewPage() {
       setLoading(true);
       setError("");
 
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       if (!token) {
         throw new Error("You are not logged in.");
@@ -87,8 +87,8 @@ export default function FounderOverviewPage() {
       .toUpperCase();
   }
 
-  // Get founder name from localStorage
-  const founderName = localStorage.getItem("full_name") || "Founder";
+  // Get founder name from sessionStorage
+  const founderName = sessionStorage.getItem("full_name") || "Founder";
 
   return (
     <div className="w-full">

@@ -82,7 +82,7 @@ function showToast(message, type = "success") {
     setError("");
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       const res = await fetch(
         `${API_URL}/products/founder/${productId}`,
@@ -227,7 +227,7 @@ async function handleSave(e) {
   setError("");
 
   try {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       throw new Error("You are not authenticated. Please log in again.");
@@ -286,7 +286,7 @@ async function handleSubmitForReview() {
   setError("");
 
   try {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     if (!token) {
       throw new Error("You are not authenticated. Please log in again.");

@@ -40,7 +40,7 @@ export default function GuestProductQAPage() {
       setError("");
 
       const token =
-        localStorage.getItem("access_token");
+        sessionStorage.getItem("access_token");
 
       if (!token) {
         throw new Error(
@@ -115,7 +115,7 @@ export default function GuestProductQAPage() {
       setSubmitError("");
 
       const token =
-        localStorage.getItem("access_token");
+        sessionStorage.getItem("access_token");
 
       if (!token) {
         throw new Error(

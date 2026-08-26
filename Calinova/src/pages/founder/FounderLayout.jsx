@@ -34,8 +34,10 @@ export default function FounderLayout() {
   const navigate = useNavigate();
 
   function logout() {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("token_type");
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("token_type");
+    sessionStorage.removeItem("role");
+    sessionStorage.removeItem("full_name");
     navigate("/");
   }
 

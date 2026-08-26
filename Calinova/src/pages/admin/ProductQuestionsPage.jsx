@@ -36,7 +36,7 @@ export default function ProductQuestionsPage() {
 
     try {
       const token =
-        localStorage.getItem("access_token");
+        sessionStorage.getItem("access_token");
 
       if (!token) {
         throw new Error(
@@ -117,7 +117,7 @@ export default function ProductQuestionsPage() {
 
     try {
       const token =
-        localStorage.getItem("access_token");
+        sessionStorage.getItem("access_token");
 
       if (!token) {
         throw new Error(

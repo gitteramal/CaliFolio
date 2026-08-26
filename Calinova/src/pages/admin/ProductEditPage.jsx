@@ -37,7 +37,7 @@ export default function ProductEditPage() {
   useEffect(() => {
     async function loadProduct() {
       try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       const response = await fetch(
         `${API_URL}/products/admin/${productId}/review`,

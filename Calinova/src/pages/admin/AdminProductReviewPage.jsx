@@ -32,7 +32,7 @@ const [actionLoading, setActionLoading] = useState(false);
 
 async function handleRequestChanges() {
   try {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     const res = await fetch(
       `${API_URL}/products/admin/${productId}/request-changes`,
@@ -73,7 +73,7 @@ async function handleApprove() {
   setSuccess("");
 
   try {
-    const token = localStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     const res = await fetch(
       `${API_URL}/products/admin/${productId}/approve`,
@@ -113,7 +113,7 @@ async function handleApprove() {
     setError("");
 
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
 
       const response = await fetch(
         `${API_URL}/products/admin/${productId}/review`,

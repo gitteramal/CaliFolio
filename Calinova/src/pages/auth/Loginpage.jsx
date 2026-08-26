@@ -42,23 +42,23 @@ export default function LoginPage() {
       }
 
       // Save authentication
-      localStorage.setItem(
+      sessionStorage.setItem(
         "access_token",
         data.access_token
       );
 
-      localStorage.setItem(
+      sessionStorage.setItem(
         "token_type",
         data.token_type
       );
 
       // Save user information
-      localStorage.setItem(
+      sessionStorage.setItem(
         "role",
         data.role
       );
 
-      localStorage.setItem(
+      sessionStorage.setItem(
         "full_name",
         data.full_name
       );
