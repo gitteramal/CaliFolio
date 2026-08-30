@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -23,6 +23,7 @@ export default function SoftwareShowcasePage() {
 
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState([]);
+  const [pendingQuestionCounts, setPendingQuestionCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -47,7 +48,32 @@ export default function SoftwareShowcasePage() {
 
   useEffect(() => {
     loadPublishedProducts();
+    loadPendingQuestionCounts();
+    const intervalId = window.setInterval(loadPendingQuestionCounts, 15000);
+    return () => window.clearInterval(intervalId);
   }, []);
+
+  async function loadPendingQuestionCounts() {
+    try {
+      const token = sessionStorage.getItem("access_token");
+      if (!token) return;
+
+      const res = await fetch(`${API_URL}/product-questions/admin`, {
+        headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+
+      const counts = (await res.json()).reduce((result, question) => {
+        if (question.status === "pending") {
+          result[question.product_id] = (result[question.product_id] || 0) + 1;
+        }
+        return result;
+      }, {});
+      setPendingQuestionCounts(counts);
+    } catch (err) {
+      console.error("Failed to load pending question counts:", err);
+    }
+  }
 
   async function loadPublishedProducts() {
     setLoading(true);
@@ -482,8 +508,12 @@ export default function SoftwareShowcasePage() {
 
                 <article
                   key={product.id}
+                  onClick={() =>
+                    navigate(`/admin/software/${product.id}`)
+                  }
                   className="
                     group
+                    cursor-pointer
                     overflow-hidden
                     rounded-2xl
                     border
@@ -783,11 +813,12 @@ export default function SoftwareShowcasePage() {
 
                       <button
                         type="button"
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation();
                           navigate(
                             `/admin/software/${product.id}`
-                          )
-                        }
+                          );
+                        }}
                         className="
                           flex
                           w-full
@@ -911,10 +942,17 @@ export default function SoftwareShowcasePage() {
     hover:text-[#006F8D]
   "
 >
-  <MessageSquare
-    size={14}
-    strokeWidth={1.8}
-  />
+  <span className="relative inline-flex">
+    <MessageSquare
+      size={14}
+      strokeWidth={1.8}
+    />
+    {pendingQuestionCounts[product.id] > 0 && (
+      <span className="absolute -right-3 -top-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#E5484D] px-1 text-[9px] font-bold leading-none text-white">
+        {pendingQuestionCounts[product.id] > 99 ? "99+" : pendingQuestionCounts[product.id]}
+      </span>
+    )}
+  </span>
 
   Q&A
 </button>

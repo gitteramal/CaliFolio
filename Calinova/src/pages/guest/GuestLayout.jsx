@@ -1,24 +1,36 @@
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Boxes,
   Bookmark,
-  MessageSquare,
   Menu,
   X,
   LogOut,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 const BRAND = "#0097c1";
+const API_URL = "http://127.0.0.1:8000";
+const SEEN_ANSWER_IDS_KEY = "calinova_seen_answer_ids";
+
+function getSeenAnswerIds() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(SEEN_ANSWER_IDS_KEY) || "[]"));
+  } catch {
+    return new Set();
+  }
+}
 
 export default function GuestLayout() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isShowcaseActive = pathname === "/guest/showcase";
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [answeredQuestionCount, setAnsweredQuestionCount] = useState(0);
 
   // =========================================================
   // USER
@@ -26,14 +38,6 @@ export default function GuestLayout() {
 
   const fullName =
     sessionStorage.getItem("full_name") || "Guest";
-
-  const initials = fullName
-    .split(" ")
-    .filter(Boolean)
-    .map((name) => name.charAt(0))
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   // =========================================================
   // RESPONSIVE
@@ -50,6 +54,45 @@ export default function GuestLayout() {
 
     return () => {
       window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    async function loadAnsweredQuestionCount() {
+      try {
+        const token = sessionStorage.getItem("access_token");
+        if (!token) return;
+        const res = await fetch(`${API_URL}/product-questions/my`, {
+          headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const questions = await res.json();
+        const seenAnswerIds = getSeenAnswerIds();
+        setAnsweredQuestionCount(
+          questions.filter(
+            (question) =>
+              question.status === "answered" &&
+              question.answer &&
+              !seenAnswerIds.has(question.answer_id)
+          ).length
+        );
+      } catch (err) {
+        console.error("Failed to load answered question count:", err);
+      }
+    }
+
+    loadAnsweredQuestionCount();
+    const intervalId = window.setInterval(loadAnsweredQuestionCount, 15000);
+    window.addEventListener(
+      "guest-question-notifications-updated",
+      loadAnsweredQuestionCount
+    );
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener(
+        "guest-question-notifications-updated",
+        loadAnsweredQuestionCount
+      );
     };
   }, []);
 
@@ -350,7 +393,7 @@ export default function GuestLayout() {
                     : undefined
                 }
                 onClick={() => setMobileOpen(false)}
-                className={({ isActive }) => `
+                className={() => `
                   group
                   flex
                   items-center
@@ -367,35 +410,42 @@ export default function GuestLayout() {
                   duration-150
 
                   ${
-                    isActive
+                    isShowcaseActive
                       ? "bg-black text-white shadow-sm"
                       : "text-[#64747b] hover:bg-[#e9edef] hover:text-[#1d292e]"
                   }
                 `}
               >
-                {({ isActive }) => (
+                {() => (
                   <>
                     <Boxes
                       size={17}
                       strokeWidth={
-                        isActive ? 2.2 : 1.8
+                        isShowcaseActive ? 2.2 : 1.8
                       }
                       className="shrink-0"
                     />
 
                     {!collapsed && (
-                      <span
-                        className={`
-                          text-[13px]
-                          ${
-                            isActive
-                              ? "font-medium text-white"
-                              : "font-medium"
-                          }
-                        `}
-                      >
-                        Software Showcase
-                      </span>
+                      <>
+                        <span
+                          className={`
+                            text-[13px]
+                            ${
+                              isShowcaseActive
+                                ? "font-medium text-white"
+                                : "font-medium"
+                            }
+                          `}
+                        >
+                          Software Showcase
+                        </span>
+                        {answeredQuestionCount > 0 && (
+                          <span className={`ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${isShowcaseActive ? "bg-white text-[#111B26]" : "bg-[#E5484D] text-white"}`}>
+                            {answeredQuestionCount > 99 ? "99+" : answeredQuestionCount}
+                          </span>
+                        )}
+                      </>
                     )}
                   </>
                 )}
@@ -761,28 +811,20 @@ export default function GuestLayout() {
 
 
               {/* =================================================
-                  AVATAR
+                  LOGGED-IN GUEST
               ================================================== */}
 
-              <div
-                className="
-                  w-8
-                  h-8
-                  rounded-full
-                  flex
-                  items-center
-                  justify-center
-                  text-[9px]
-                  font-bold
-                  text-white
-                "
-                style={{
-                  background:
-                    "linear-gradient(135deg, #0097c1, #123b43)",
-                }}
-                title={fullName}
-              >
-                {initials}
+              <div className="min-w-0 leading-tight">
+                <p
+                  className="
+                    text-[12px]
+                    font-semibold
+                    text-[#1d292e]
+                    truncate
+                  "
+                >
+                  {fullName}
+                </p>
               </div>
 
 

@@ -205,7 +205,7 @@ export default function ProductDetailsPage() {
           </button>
 
 
-          {/* EDIT */}
+          {/* EDIT 
 
           <button
             type="button"
@@ -230,7 +230,7 @@ export default function ProductDetailsPage() {
             <Pencil size={15} />
             Edit Product
           </button>
-
+*/}
         </div>
 
 
@@ -632,150 +632,20 @@ export default function ProductDetailsPage() {
                 value={product.ideal_customer_profile}
               />
 
-              <ContentCard
+              <BulletCard
                 label="VALUE PROPOSITION"
                 value={product.value_proposition}
               />
 
-              <ContentCard
+              <BulletCard
                 label="HIGHLIGHTS"
                 value={product.highlights}
               />
 
-
-              {/* COMPANY */}
-
-              <section className="compact-card">
-
-                <SectionTitle title="COMPANY" />
-
-                <div
-                  className="
-                    grid
-                    grid-cols-1
-                    md:grid-cols-2
-                    gap-x-8
-                    gap-y-4
-                  "
-                >
-
-                  <Info
-                    label="Company"
-                    value={product.company}
-                  />
-
-                  <Info
-                    label="Headquarters"
-                    value={product.headquarters}
-                  />
-
-                  <Info
-                    label="Founded"
-                    value={product.founded}
-                  />
-
-                  <Info
-                    label="Team Size"
-                    value={product.team_size}
-                  />
-
-                  <Info
-                    label="Deployment"
-                    value={product.deployment}
-                  />
-
-                  <Info
-                    label="Pricing"
-                    value={product.pricing}
-                  />
-
-                </div>
-
-              </section>
-
-
-              {/* FOUNDERS & BUSINESS */}
-
-              <section className="compact-card">
-
-                <SectionTitle title="FOUNDERS & BUSINESS" />
-
-                <div className="space-y-4">
-
-                  <Info
-                    label="Founders & Team"
-                    value={product.founders_team}
-                    large
-                  />
-
-                  <Info
-                    label="Key Clients"
-                    value={product.key_clients}
-                    large
-                  />
-
-                  <Info
-                    label="Roadmap"
-                    value={product.roadmap}
-                    large
-                  />
-
-                  <Info
-                    label="Compliance"
-                    value={product.compliance}
-                    large
-                  />
-
-                  <Info
-                    label="Integrations"
-                    value={product.integrations}
-                    large
-                  />
-
-                </div>
-
-              </section>
-
-
-              {/* TRACTION */}
-
-              <section className="compact-card">
-
-                <SectionTitle title="TRACTION & METRICS" />
-
-                <div
-                  className="
-                    grid
-                    grid-cols-1
-                    md:grid-cols-2
-                    gap-x-8
-                    gap-y-4
-                  "
-                >
-
-                  <Info
-                    label="Users"
-                    value={product.users}
-                  />
-
-                  <Info
-                    label="Customers"
-                    value={product.customers}
-                  />
-
-                  <Info
-                    label="Traction"
-                    value={product.traction}
-                  />
-
-                  <Info
-                    label="Funds Raised"
-                    value={product.funds_raised}
-                  />
-
-                </div>
-
-              </section>
+              <BulletCard
+                label="ROADMAP"
+                value={product.roadmap}
+              />
 
 
               {/* MEDIA */}
@@ -885,20 +755,7 @@ export default function ProductDetailsPage() {
 
               <SectionTitle title="FOUNDERS & TEAM" />
 
-              <p
-                className={`
-                  text-[13px]
-                  leading-6
-                  whitespace-pre-line
-                  ${
-                    isEmpty(product.founders_team)
-                      ? "text-gray-300"
-                      : "text-gray-600"
-                  }
-                `}
-              >
-                {displayValue(product.founders_team)}
-              </p>
+              <BulletContent value={product.founders_team} />
 
             </section>
 
@@ -1309,5 +1166,31 @@ function LinkField({ label, value }) {
       )}
 
     </div>
+  );
+}
+
+function BulletCard({ label, value }) {
+  return (
+    <section className="compact-card">
+      <SectionTitle title={label} />
+      <BulletContent value={value} />
+    </section>
+  );
+}
+
+function BulletContent({ value }) {
+  const items = String(value || "")
+    .split(/\n|•/)
+    .map((item) => item.replace(/^[-*]\s*/, "").trim())
+    .filter(Boolean);
+
+  if (items.length === 0) {
+    return <p className="text-[13px] text-gray-300">&nbsp;</p>;
+  }
+
+  return (
+    <ul className="list-disc space-y-2 pl-5 text-[13px] leading-6 text-gray-700 marker:text-[#0097c1]">
+      {items.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}
+    </ul>
   );
 }

@@ -1,23 +1,73 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
   Boxes,
-  MessageCircle,
+  MessageSquare,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://127.0.0.1:8000";
+const SEEN_ANSWER_IDS_KEY = "calinova_seen_answer_ids";
+
+function getSeenAnswerIds() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(SEEN_ANSWER_IDS_KEY) || "[]"));
+  } catch {
+    return new Set();
+  }
+}
 
 export default function GuestShowcasePage() {
   const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
+  const [answeredQuestionCounts, setAnsweredQuestionCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     fetchPublishedProducts();
+    fetchAnsweredQuestionCounts();
+    const intervalId = window.setInterval(fetchAnsweredQuestionCounts, 15000);
+    window.addEventListener(
+      "guest-question-notifications-updated",
+      fetchAnsweredQuestionCounts
+    );
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener(
+        "guest-question-notifications-updated",
+        fetchAnsweredQuestionCounts
+      );
+    };
   }, []);
+
+  async function fetchAnsweredQuestionCounts() {
+    try {
+      const token = sessionStorage.getItem("access_token");
+      if (!token) return;
+
+      const res = await fetch(`${API_URL}/product-questions/my`, {
+        headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+
+      const seenAnswerIds = getSeenAnswerIds();
+      const counts = (await res.json()).reduce((result, question) => {
+        if (
+          question.status === "answered" &&
+          question.answer &&
+          !seenAnswerIds.has(question.answer_id)
+        ) {
+          result[question.product_id] = (result[question.product_id] || 0) + 1;
+        }
+        return result;
+      }, {});
+      setAnsweredQuestionCounts(counts);
+    } catch (err) {
+      console.error("Failed to load answered question counts:", err);
+    }
+  }
 
   async function fetchPublishedProducts() {
     try {
@@ -720,7 +770,7 @@ export default function GuestShowcasePage() {
   "
 >
 
-  <div className="flex items-center justify-between gap-3">
+  <div className="space-y-2.5">
 
     {/* View Product */}
 
@@ -732,28 +782,42 @@ export default function GuestShowcasePage() {
       }}
       className="
         flex
+        w-full
         items-center
-        gap-1
-        rounded-md
+        justify-between
+        rounded-lg
         px-1
         py-1
-        font-mono
-        text-[9px]
+        text-left
+        text-[11px]
         font-medium
-        tracking-[0.16em]
-        uppercase
-        text-[#8A969E]
+        text-[#687780]
         transition-colors
         duration-200
-        hover:text-[#111B26]
+        hover:text-[#006F8D]
       "
     >
-      View product
+      <span
+        className="
+          font-mono
+          text-[9px]
+          font-medium
+          tracking-[0.16em]
+          uppercase
+        "
+      >
+        View product
+      </span>
 
-      <ArrowUpRight
-        size={12}
-        strokeWidth={1.8}
-      />
+      <span className="flex items-center gap-1">
+        Details
+
+        <ArrowUpRight
+          size={13}
+          strokeWidth={1.8}
+          className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+        />
+      </span>
     </button>
 
 
@@ -765,30 +829,39 @@ export default function GuestShowcasePage() {
         openProductQA(product.id, e)
       }
       className="
-        inline-flex
+        flex
+        w-full
         items-center
+        justify-center
         gap-2
         rounded-lg
         border
         border-[#DCE3E6]
-        bg-[#F8FAFA]
+        bg-white
         px-3
-        py-2
+        py-2.5
         text-[11px]
         font-medium
         text-[#46555E]
         transition-all
         duration-200
         hover:border-[#0097C1]
-        hover:bg-white
+        hover:bg-[#F7FCFD]
         hover:text-[#006F8D]
       "
     >
 
-      <MessageCircle
-        size={14}
-        strokeWidth={1.8}
-      />
+      <span className="relative inline-flex">
+        <MessageSquare
+          size={14}
+          strokeWidth={1.8}
+        />
+        {answeredQuestionCounts[product.id] > 0 && (
+          <span className="absolute -right-3 -top-3 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#E5484D] px-1 text-[9px] font-bold leading-none text-white">
+            {answeredQuestionCounts[product.id] > 99 ? "99+" : answeredQuestionCounts[product.id]}
+          </span>
+        )}
+      </span>
 
       Q&A
 

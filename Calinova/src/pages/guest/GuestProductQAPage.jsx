@@ -12,6 +12,20 @@ import {
 } from "react-router-dom";
 
 const API_URL = "http://127.0.0.1:8000";
+const SEEN_ANSWER_IDS_KEY = "calinova_seen_answer_ids";
+
+function markAnswersAsSeen(answerIds) {
+  try {
+    const seenAnswerIds = JSON.parse(
+      localStorage.getItem(SEEN_ANSWER_IDS_KEY) || "[]"
+    );
+    const updatedAnswerIds = [...new Set([...seenAnswerIds, ...answerIds])];
+    localStorage.setItem(SEEN_ANSWER_IDS_KEY, JSON.stringify(updatedAnswerIds));
+    window.dispatchEvent(new Event("guest-question-notifications-updated"));
+  } catch (err) {
+    console.error("Failed to mark answers as seen:", err);
+  }
+}
 
 export default function GuestProductQAPage() {
   const navigate = useNavigate();
@@ -76,6 +90,14 @@ export default function GuestProductQAPage() {
       );
 
       setQuestions(productQuestions);
+
+      // Opening this page means the guest has seen all current answers
+      // for this product, so their notification badges can be cleared.
+      markAnswersAsSeen(
+        productQuestions
+          .filter((item) => item.status === "answered" && item.answer_id)
+          .map((item) => item.answer_id)
+      );
 
     } catch (err) {
       console.error(

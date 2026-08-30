@@ -164,6 +164,9 @@ export default function ProductQuestionsPage() {
       // Reload questions so answered status
       // and answer are immediately reflected
       await loadQuestions();
+      window.dispatchEvent(
+        new Event("admin-question-notifications-updated")
+      );
     } catch (err) {
       console.error(
         "Failed to submit answer:",

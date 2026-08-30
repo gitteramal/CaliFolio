@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus,
+  UserPlus,
+  Eye,
+  EyeOff,
   Boxes,
   X,
   ArrowRight,
@@ -31,6 +34,21 @@ export default function OverviewPage() {
   const [founders, setFounders] = useState([]);
   const [founderId, setFounderId] = useState("");
 
+  // =========================================================
+  // USER CREATION STATE
+  // =========================================================
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [userFormData, setUserFormData] = useState({
+    full_name: "",
+    email: "",
+    password: "",
+    role: "founder",
+  });
+  const [userLoading, setUserLoading] = useState(false);
+  const [userError, setUserError] = useState("");
+  const [userSuccess, setUserSuccess] = useState("");
+  const [showUserPassword, setShowUserPassword] = useState(false);
+
   const [pendingProducts, setPendingProducts] = useState([]);
   const [pendingLoading, setPendingLoading] = useState(false);
 
@@ -42,72 +60,69 @@ export default function OverviewPage() {
   // =========================================================
   // LOAD FOUNDERS
   // =========================================================
- useEffect(() => {
-  loadPublishedProductsCount();
-}, []);
 
-async function loadPublishedProductsCount() {
-  try {
-    const token = sessionStorage.getItem("access_token");
+  async function loadFounders() {
+    try {
+      const token = sessionStorage.getItem("access_token");
+      const response = await fetch(
+        "http://127.0.0.1:8000/users/founders",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    if (!token) return;
+      const data = await response.json();
 
-    const res = await fetch(
-      "http://127.0.0.1:8000/products/admin/published",
-      {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      if (!response.ok) {
+        throw new Error(
+          data.detail || "Failed to load founders."
+        );
       }
-    );
 
-    if (!res.ok) {
-      throw new Error("Failed to load published products.");
+      setFounders(data);
+    } catch (error) {
+      console.error("Failed to load founders:", error);
     }
-
-    const data = await res.json();
-
-    setPublishedProductsCount(data.length);
-  } catch (error) {
-    console.error(
-      "Failed to load published products count:",
-      error
-    );
   }
-}
 
   useEffect(() => {
-    async function loadFounders() {
-      try {
-        const response = await fetch(
-          "http://127.0.0.1:8000/users/founders",
-          {
-            headers: {
-              Authorization: `Bearer ${sessionStorage.getItem(
-                "access_token"
-              )}`,
-            },
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data.detail || "Failed to load founders."
-          );
-        }
-
-        setFounders(data);
-      } catch (error) {
-        console.error("Failed to load founders:", error);
-      }
-    }
-
     loadFounders();
+    loadPublishedProductsCount();
   }, []);
+
+  async function loadPublishedProductsCount() {
+    try {
+      const token = sessionStorage.getItem("access_token");
+
+      if (!token) return;
+
+      const res = await fetch(
+        "http://127.0.0.1:8000/products/admin/published",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Failed to load published products.");
+      }
+
+      const data = await res.json();
+
+      setPublishedProductsCount(data.length);
+    } catch (error) {
+      console.error(
+        "Failed to load published products count:",
+        error
+      );
+    }
+  }
 
   // =========================================================
   // LOAD PENDING PRODUCTS
@@ -315,7 +330,90 @@ useEffect(() => {
   }
 
   // =========================================================
-  // OPEN MODAL
+  // USER MODAL HANDLERS
+  // =========================================================
+
+  function openCreateUserModal() {
+    setUserFormData({
+      full_name: "",
+      email: "",
+      password: "",
+      role: "founder",
+    });
+    setUserError("");
+    setUserSuccess("");
+    setShowUserPassword(false);
+    setShowUserModal(true);
+  }
+
+  function handleUserChange(e) {
+    const { name, value } = e.target;
+    setUserFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
+  async function handleCreateUser(e) {
+    e.preventDefault();
+    setUserError("");
+    setUserSuccess("");
+    setUserLoading(true);
+
+    try {
+      const token = sessionStorage.getItem("access_token");
+      if (!token) {
+        throw new Error("You are not authenticated. Please log in again.");
+      }
+
+      const res = await fetch("http://127.0.0.1:8000/users/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          full_name: userFormData.full_name,
+          email: userFormData.email,
+          password: userFormData.password,
+          role: userFormData.role,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Failed to create user.");
+      }
+
+      setUserSuccess(
+        `User "${data.full_name}" created successfully with role ${data.role.toUpperCase()}!`
+      );
+
+      // Refresh founders list if a founder was created
+      loadFounders();
+
+      setUserFormData({
+        full_name: "",
+        email: "",
+        password: "",
+        role: "founder",
+      });
+
+      setTimeout(() => {
+        setShowUserModal(false);
+        setUserSuccess("");
+      }, 1200);
+    } catch (err) {
+      setUserError(err.message || "Something went wrong.");
+    } finally {
+      setUserLoading(false);
+    }
+  }
+
+  // =========================================================
+  // OPEN PRODUCT MODAL
   // =========================================================
 
   function openCreateModal() {
@@ -354,28 +452,57 @@ useEffect(() => {
           </p>
         </div>
 
-        <button
-          onClick={openCreateModal}
-          className="
-            inline-flex
-            items-center
-            justify-center
-            gap-2
-            bg-[#071015]
-            hover:bg-[#172126]
-            text-white
-            px-4
-            py-2.5
-            rounded-lg
-            text-[13px]
-            font-semibold
-            transition
-            shadow-sm
-          "
-        >
-          <Plus size={16} strokeWidth={2.3} />
-          Add Product
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={openCreateUserModal}
+            className="
+              inline-flex
+              items-center
+              justify-center
+              gap-2
+              bg-white
+              hover:bg-[#f7f9fa]
+              text-[#172328]
+              border
+              border-[#d5dee1]
+              px-4
+              py-2.5
+              rounded-lg
+              text-[13px]
+              font-semibold
+              transition
+              shadow-sm
+            "
+          >
+            <UserPlus size={16} strokeWidth={2.2} />
+            Add User
+          </button>
+
+          <button
+            type="button"
+            onClick={openCreateModal}
+            className="
+              inline-flex
+              items-center
+              justify-center
+              gap-2
+              bg-[#071015]
+              hover:bg-[#172126]
+              text-white
+              px-4
+              py-2.5
+              rounded-lg
+              text-[13px]
+              font-semibold
+              transition
+              shadow-sm
+            "
+          >
+            <Plus size={16} strokeWidth={2.3} />
+            Add Product
+          </button>
+        </div>
 
       </div>
 
@@ -514,7 +641,7 @@ useEffect(() => {
 
                       {product.founder_id && (
                         <span>
-                          Founder #{product.founder_id}
+                          {founders.find((f) => f.id === product.founder_id)?.full_name || `Founder #${product.founder_id}`}
                         </span>
                       )}
 
@@ -690,7 +817,7 @@ useEffect(() => {
 
               {product.founder_id && (
                 <span>
-                  Founder #{product.founder_id}
+                  {founders.find((f) => f.id === product.founder_id)?.full_name || `Founder #${product.founder_id}`}
                 </span>
               )}
 
@@ -1132,6 +1259,236 @@ useEffect(() => {
 
         </div>
 
+      )}
+
+      {/* =====================================================
+          CREATE USER MODAL
+      ====================================================== */}
+
+      {showUserModal && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+
+          <div className="bg-white w-full max-w-[500px] rounded-2xl border border-gray-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+
+            {/* Header */}
+
+            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: BRAND }}
+                  />
+
+                  <span className="cf-mono text-[9px] tracking-[0.18em] text-gray-400 uppercase">
+                    Access Control
+                  </span>
+                </div>
+
+                <h3 className="cf-display text-[18px] font-bold text-gray-900">
+                  Create New User
+                </h3>
+
+                <p className="text-[12px] text-gray-500 mt-0.5">
+                  Add an Admin, Founder, or Guest user to CaliFolio.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowUserModal(false)}
+                className="
+                  w-8
+                  h-8
+                  rounded-lg
+                  flex
+                  items-center
+                  justify-center
+                  text-gray-400
+                  hover:bg-gray-100
+                  hover:text-gray-700
+                  transition
+                "
+              >
+                <X size={18} />
+              </button>
+
+            </div>
+
+
+            {/* Form */}
+
+            <form
+              onSubmit={handleCreateUser}
+              className="p-6 space-y-4"
+            >
+
+              {/* Full Name */}
+
+              <FormField label="Full Name">
+                <input
+                  type="text"
+                  name="full_name"
+                  required
+                  value={userFormData.full_name}
+                  onChange={handleUserChange}
+                  placeholder="e.g. Jane Doe"
+                  className={inputClass}
+                />
+              </FormField>
+
+
+              {/* Email */}
+
+              <FormField label="Work Email">
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  value={userFormData.email}
+                  onChange={handleUserChange}
+                  placeholder="e.g. jane@studio.com"
+                  className={inputClass}
+                />
+              </FormField>
+
+
+              {/* Password */}
+
+              <FormField label="Password">
+                <div className="relative">
+                  <input
+                    type={showUserPassword ? "text" : "password"}
+                    name="password"
+                    required
+                    minLength={6}
+                    value={userFormData.password}
+                    onChange={handleUserChange}
+                    placeholder="••••••••"
+                    className={`${inputClass} pr-11`}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowUserPassword((prev) => !prev)
+                    }
+                    className="
+                      absolute
+                      right-3
+                      top-1/2
+                      -translate-y-1/2
+                      flex
+                      h-7
+                      w-7
+                      items-center
+                      justify-center
+                      rounded
+                      text-gray-400
+                      hover:text-gray-600
+                      transition
+                    "
+                  >
+                    {showUserPassword ? (
+                      <EyeOff size={16} />
+                    ) : (
+                      <Eye size={16} />
+                    )}
+                  </button>
+                </div>
+              </FormField>
+
+
+              {/* Role */}
+
+              <FormField label="Assigned Role">
+                <select
+                  name="role"
+                  value={userFormData.role}
+                  onChange={handleUserChange}
+                  className={inputClass}
+                >
+                  <option value="founder">
+                    Founder — Can create, edit, & submit products
+                  </option>
+                  <option value="guest">
+                    Guest — Can explore showcase & ask Q&A
+                  </option>
+                  <option value="admin">
+                    Admin — Full platform, catalog, & user management
+                  </option>
+                </select>
+              </FormField>
+
+
+              {/* Error */}
+
+              {userError && (
+                <div className="bg-red-50 border border-red-200 text-red-600 text-[12px] rounded-lg px-4 py-3">
+                  {userError}
+                </div>
+              )}
+
+
+              {/* Success */}
+
+              {userSuccess && (
+                <div className="bg-[#edf9f5] border border-[#cceee1] text-[#167653] text-[12px] rounded-lg px-4 py-3">
+                  {userSuccess}
+                </div>
+              )}
+
+
+              {/* Buttons */}
+
+              <div className="flex justify-end gap-2.5 pt-2 border-t border-gray-100">
+
+                <button
+                  type="button"
+                  onClick={() => setShowUserModal(false)}
+                  className="
+                    px-4
+                    py-2.5
+                    rounded-lg
+                    border
+                    border-gray-200
+                    text-[12px]
+                    font-semibold
+                    text-gray-600
+                    hover:bg-gray-50
+                    transition
+                  "
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={userLoading}
+                  className="
+                    px-5
+                    py-2.5
+                    rounded-lg
+                    bg-[#071015]
+                    hover:bg-[#162126]
+                    text-white
+                    text-[12px]
+                    font-semibold
+                    disabled:opacity-50
+                    transition
+                  "
+                >
+                  {userLoading ? "Creating..." : "Create User"}
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
       )}
 
     </div>

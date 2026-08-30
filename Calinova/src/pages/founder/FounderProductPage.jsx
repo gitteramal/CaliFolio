@@ -604,7 +604,8 @@ setProduct(savedData);
               name="value_proposition"
               value={formData.value_proposition}
               onChange={handleChange}
-              placeholder="What value does your product provide?"
+              placeholder="One value point per line..."
+              helperText="Add one item per line; it will display as bullet points."
             />
 
             <TextareaField
@@ -612,7 +613,8 @@ setProduct(savedData);
               name="highlights"
               value={formData.highlights}
               onChange={handleChange}
-              placeholder="List your most important product highlights..."
+              placeholder="One highlight per line..."
+              helperText="Add one item per line; it will display as bullet points."
             />
 
           </div>
@@ -700,7 +702,8 @@ setProduct(savedData);
               name="founders_team"
               value={formData.founders_team}
               onChange={handleChange}
-              placeholder="Founder names, roles and team information..."
+              placeholder="One founder or team member per line..."
+              helperText="Add one item per line; it will display as bullet points."
             />
 
             <TextareaField
@@ -716,7 +719,8 @@ setProduct(savedData);
               name="roadmap"
               value={formData.roadmap}
               onChange={handleChange}
-              placeholder="Upcoming product milestones..."
+              placeholder="One upcoming milestone per line..."
+              helperText="Add one item per line; it will display as bullet points."
             />
 
             <TextareaField
@@ -843,7 +847,7 @@ setProduct(savedData);
             SAVE
         ====================================================== */}
 
-<div className="sticky bottom-0 bg-[#eef2f3]/95 backdrop-blur border-t border-gray-200 py-5 mt-8">
+<div className="sticky -bottom-4 sm:-bottom-6 lg:-bottom-7 z-20 bg-[#eef2f3]/95 backdrop-blur border-t border-gray-200 py-5 mt-8">
 
   <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
 
@@ -1037,6 +1041,7 @@ function TextareaField({
   value,
   onChange,
   placeholder,
+  helperText,
 }) {
   return (
     <div>
@@ -1053,6 +1058,12 @@ function TextareaField({
         rows={4}
         className="w-full px-3.5 py-3 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 transition resize-y"
       />
+
+      {helperText && (
+        <p className="mt-1.5 text-xs text-gray-500">
+          {helperText}
+        </p>
+      )}
 
     </div>
   );

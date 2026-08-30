@@ -7,9 +7,9 @@ db = SessionLocal()
 
 try:
     founder = User(
-        full_name="John Founder",
-        email="founder@califolio.com",
-        password_hash=hash_password("Founder@123"),
+        full_name="jos paul",
+        email="founder@jos.com",
+        password_hash=hash_password("founder1234"),
         role="founder",
     )
 

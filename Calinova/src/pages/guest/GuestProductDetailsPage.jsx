@@ -774,17 +774,17 @@ export default function GuestProductDetailsPage() {
                 value={product.ideal_customer_profile}
               />
 
-              <ContentCard
+              <BulletCard
                 label="VALUE PROPOSITION"
                 value={product.value_proposition}
               />
 
-              <ContentCard
+              <BulletCard
                 label="HIGHLIGHTS"
                 value={product.highlights}
               />
 
-              <ContentCard
+              <BulletCard
                 label="ROADMAP"
                 value={product.roadmap}
               />
@@ -793,105 +793,6 @@ export default function GuestProductDetailsPage() {
                 label="KEY CLIENTS"
                 value={product.key_clients}
               />
-
-
-              {/* =================================================
-                  COMPANY
-              ================================================== */}
-
-              <section className="compact-card">
-
-                <SectionTitle title="COMPANY" />
-
-                <div
-                  className="
-                    grid
-                    grid-cols-1
-                    md:grid-cols-2
-                    gap-x-8
-                    gap-y-4
-                  "
-                >
-
-                  <Info
-                    label="Company"
-                    value={product.company}
-                  />
-
-                  <Info
-                    label="Headquarters"
-                    value={product.headquarters}
-                  />
-
-                  <Info
-                    label="Founded"
-                    value={product.founded}
-                  />
-
-                  <Info
-                    label="Team Size"
-                    value={product.team_size}
-                  />
-
-                  <Info
-                    label="Deployment"
-                    value={product.deployment}
-                  />
-
-                  <Info
-                    label="Pricing"
-                    value={product.pricing}
-                  />
-
-                </div>
-
-              </section>
-
-
-              {/* =================================================
-                  BUSINESS
-              ================================================== */}
-
-              <section className="compact-card">
-
-                <SectionTitle title="BUSINESS & OPERATIONS" />
-
-                <div className="space-y-4">
-
-                  <Info
-                    label="Compliance"
-                    value={product.compliance}
-                    large
-                  />
-
-                  <Info
-                    label="Integrations"
-                    value={product.integrations}
-                    large
-                  />
-
-                </div>
-
-              </section>
-
-
-              {/* =================================================
-                  FOUNDERS
-              ================================================== */}
-
-              {product.founders_team && (
-                <section className="compact-card">
-
-                  <SectionTitle title="FOUNDERS & TEAM" />
-
-                  <Info
-                    label="Founders & Team"
-                    value={product.founders_team}
-                    large
-                  />
-
-                </section>
-              )}
 
 
               {/* =================================================
@@ -1015,16 +916,7 @@ export default function GuestProductDetailsPage() {
 
                 <SectionTitle title="FOUNDERS & TEAM" />
 
-                <p
-                  className="
-                    text-[13px]
-                    leading-6
-                    whitespace-pre-line
-                    text-gray-600
-                  "
-                >
-                  {product.founders_team}
-                </p>
+                <BulletContent value={product.founders_team} />
 
               </section>
             )}
@@ -1572,5 +1464,30 @@ function IconInfo({
       </div>
 
     </div>
+  );
+}
+
+function BulletCard({ label, value }) {
+  const empty = value === null || value === undefined || String(value).trim() === "";
+  if (empty) return null;
+
+  return (
+    <section className="compact-card">
+      <SectionTitle title={label} />
+      <BulletContent value={value} />
+    </section>
+  );
+}
+
+function BulletContent({ value }) {
+  const items = String(value || "")
+    .split(/\n|•/)
+    .map((item) => item.replace(/^[-*]\s*/, "").trim())
+    .filter(Boolean);
+
+  return (
+    <ul className="list-disc space-y-2 pl-5 text-[13px] leading-6 text-gray-700 marker:text-[#0097c1]">
+      {items.map((item, index) => <li key={`${item}-${index}`}>{item}</li>)}
+    </ul>
   );
 }

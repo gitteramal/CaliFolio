@@ -4,10 +4,7 @@ import {
   CheckCircle,
   XCircle,
   ExternalLink,
-  Video,
-  FileText,
-  Globe,
-  Image as ImageIcon,
+  Play,
   Loader2,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -19,94 +16,37 @@ export default function AdminProductReviewPage() {
   const { productId } = useParams();
 
   const [product, setProduct] = useState(null);
+  const [founders, setFounders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showChangesModal, setShowChangesModal] = useState(false);
-const [reviewNote, setReviewNote] = useState("");
-const [actionLoading, setActionLoading] = useState(false);
+  const [reviewNote, setReviewNote] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     fetchProduct();
+    fetchFounders();
   }, [productId]);
 
-async function handleRequestChanges() {
-  try {
-    const token = sessionStorage.getItem("access_token");
-
-    const res = await fetch(
-      `${API_URL}/products/admin/${productId}/request-changes`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          review_note: reviewNote,
-        }),
+  async function fetchFounders() {
+    try {
+      const token = sessionStorage.getItem("access_token");
+      const res = await fetch(`${API_URL}/users/founders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setFounders(data);
       }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(
-        data.detail || "Unable to request changes."
-      );
+    } catch (err) {
+      // non-critical – silently ignore
     }
-
-    // Product successfully changed back to draft
-    navigate("/admin/overview");
-
-  } catch (err) {
-    setError(
-      err.message || "Something went wrong."
-    );
   }
-}
 
-async function handleApprove() {
-  setActionLoading(true);
-  setError("");
-  setSuccess("");
-
-  try {
-    const token = sessionStorage.getItem("access_token");
-
-    const res = await fetch(
-      `${API_URL}/products/admin/${productId}/approve`,
-      {
-        method: "PATCH",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(
-        data.detail || "Unable to approve product."
-      );
-    }
-
-    setSuccess("Product approved successfully.");
-
-    setTimeout(() => {
-      navigate("/admin/overview");
-    }, 1500);
-
-  } catch (err) {
-    setError(
-      err.message || "Something went wrong while approving."
-    );
-    setActionLoading(false);
-  }
-}
+  // =========================================================
+  // API ACTIONS
+  // =========================================================
 
   async function fetchProduct() {
     setLoading(true);
@@ -129,36 +69,125 @@ async function handleApprove() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.detail || "Unable to load product."
-        );
+        throw new Error(data.detail || "Unable to load product.");
       }
 
       setProduct(data);
     } catch (err) {
-      setError(
-        err.message || "Something went wrong."
-      );
+      setError(err.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
   }
 
+  async function handleApprove() {
+    setActionLoading(true);
+    setError("");
+    setSuccess("");
+
+    try {
+      const token = sessionStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${API_URL}/products/admin/${productId}/approve`,
+        {
+          method: "PATCH",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Unable to approve product.");
+      }
+
+      setSuccess("Product approved successfully.");
+
+      setTimeout(() => {
+        navigate("/admin/overview");
+      }, 1500);
+    } catch (err) {
+      setError(err.message || "Something went wrong while approving.");
+      setActionLoading(false);
+    }
+  }
+
+  async function handleRequestChanges() {
+    setActionLoading(true);
+    setError("");
+
+    try {
+      const token = sessionStorage.getItem("access_token");
+
+      const res = await fetch(
+        `${API_URL}/products/admin/${productId}/request-changes`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ review_note: reviewNote }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "Unable to request changes.");
+      }
+
+      navigate("/admin/overview");
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+      setActionLoading(false);
+    }
+  }
+
+  // =========================================================
+  // HELPERS
+  // =========================================================
+
+  function formatStage(stage) {
+    const stages = {
+      ideation: "Ideation",
+      in_development: "In Development",
+      ready: "Ready",
+    };
+    return stages[stage] || (stage ? String(stage) : "");
+  }
+
+  function formatOrigin(origin) {
+    const origins = {
+      in_house: "In-house",
+      acquired: "Acquired",
+      whitelabeled: "White-labeled",
+      hosted: "Hosted",
+    };
+    return origins[origin] || (origin ? String(origin) : "");
+  }
+
+  // =========================================================
+  // LOADING
+  // =========================================================
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#eef2f3] flex items-center justify-center">
         <div className="flex items-center gap-3 text-gray-600">
-          <Loader2
-            size={20}
-            className="animate-spin"
-          />
+          <Loader2 size={20} className="animate-spin" />
           Loading product...
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !product) {
     return (
       <div className="min-h-screen bg-[#eef2f3] p-8">
         <div className="max-w-5xl mx-auto">
@@ -171,495 +200,614 @@ async function handleApprove() {
           </button>
 
           <div className="bg-white rounded-2xl border border-red-200 p-6">
-            <p className="text-sm text-red-600">
-              {error}
-            </p>
+            <p className="text-sm text-red-600">{error}</p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!product) {
-    return null;
-  }
+  if (!product) return null;
 
   return (
-    <div className="min-h-screen bg-[#eef2f3]">
+    <div className="w-full">
 
-            {success && (
-      <div className="fixed top-6 right-6 z-[9999]">
-        <div className="rounded-lg bg-[#071015] px-5 py-3 text-sm font-semibold text-white shadow-xl">
-          {success}
+      {/* TOAST MESSAGES */}
+
+      {success && (
+        <div className="fixed top-6 right-6 z-[9999]">
+          <div className="rounded-lg bg-[#071015] px-5 py-3 text-sm font-semibold text-white shadow-xl">
+            {success}
+          </div>
         </div>
-      </div>
-    )}
+      )}
 
-    {/* ERROR POPUP */}
-    {error && (
-      <div className="fixed top-6 right-6 z-[9999]">
-        <div className="rounded-lg bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-xl">
-          {error}
+      {error && (
+        <div className="fixed top-6 right-6 z-[9999]">
+          <div className="rounded-lg bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-xl">
+            {error}
+          </div>
         </div>
-      </div>
-    )}
+      )}
 
-      {/* =================================================
-          TOP BAR
-      ================================================= */}
+      {/* REQUEST CHANGES MODAL */}
 
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4">
+      {showChangesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-lg rounded-xl bg-white shadow-xl">
+
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+              <div>
+                <h2 className="text-lg font-semibold text-[#071015]">
+                  Request Changes
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Tell the founder what needs to be updated.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowChangesModal(false)}
+                className="text-gray-400 hover:text-gray-700"
+              >
+                <XCircle size={20} />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Review note
+              </label>
+
+              <textarea
+                value={reviewNote}
+                onChange={(e) => setReviewNote(e.target.value)}
+                rows={5}
+                placeholder="Example: Please update the pricing information and add your latest traction numbers."
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-[#071015] resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowChangesModal(false);
+                  setReviewNote("");
+                }}
+                className="px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+
+<button
+  type="button"
+  onClick={handleRequestChanges}
+  disabled={actionLoading}
+  className="px-4 py-2.5 rounded-lg bg-[#071015] text-white text-sm font-semibold hover:bg-[#162126] disabled:opacity-50 disabled:cursor-not-allowed"
+>
+  {actionLoading ? "Sending..." : "Request Changes"}
+</button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+
+      <div className="max-w-[1300px] mx-auto">
+
+        {/* =================================================
+            TOP ACTIONS
+        ================================================= */}
+
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
 
           <button
+            type="button"
             onClick={() => navigate("/admin/overview")}
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={15} />
             Back to overview
           </button>
 
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowChangesModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
+            >
+              <XCircle size={15} />
+              Request Changes
+            </button>
+
+            <button
+              type="button"
+              onClick={handleApprove}
+              disabled={actionLoading}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#071015] text-white text-sm font-semibold hover:bg-[#162126] transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <CheckCircle size={15} />
+              {actionLoading ? "Approving..." : "Approve"}
+            </button>
+          </div>
+
         </div>
-      </div>
 
 
-      {/* =================================================
-          MAIN
-      ================================================= */}
+        {/* =================================================
+            HERO
+        ================================================= */}
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+        <section className="relative overflow-hidden rounded-2xl border border-[#16494c] bg-[#061013] shadow-[0_4px_18px_rgba(15,23,42,0.10)]">
 
-        {/* Header */}
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#17494c] via-[#09191c] to-[#050b0d]" />
 
-        <div className="mb-8">
+          {/* Decorative circle */}
+          <div className="absolute right-[-80px] top-[-100px] w-[300px] h-[300px] rounded-full border border-white/[0.05]" />
 
-          <div className="flex items-start justify-between gap-6">
+          {/* Decorative lines */}
+          <div className="absolute right-[-40px] top-[45px] w-[280px] h-px bg-white/[0.06] rotate-[27deg]" />
+          <div className="absolute right-[-50px] top-[100px] w-[240px] h-px bg-white/[0.04] rotate-[27deg]" />
 
-            <div>
+          {/* HERO CONTENT */}
 
-              <div className="flex items-center gap-3 mb-3">
+          <div className="relative px-6 md:px-8 pt-7 pb-7">
 
-                <span className="px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold">
-                  Pending Review
+            {/* Badges */}
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+
+              {/* Pending review badge */}
+              <span className="inline-flex items-center gap-2 rounded-md bg-amber-500/10 border border-amber-400/25 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                Pending Review
+              </span>
+
+              {product.stage && (
+                <span className="inline-flex items-center gap-2 rounded-md bg-[#143b3d] border border-[#286063] px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a0d9d4]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#5ee4c7]" />
+                  {formatStage(product.stage)}
                 </span>
+              )}
 
-                {product.stage && (
-                  <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-medium">
-                    {product.stage}
-                  </span>
-                )}
+              {product.origin && (
+                <span className="rounded-md bg-white/[0.07] border border-white/[0.09] px-2.5 py-1.5 text-[10px] text-gray-300">
+                  {formatOrigin(product.origin)}
+                </span>
+              )}
 
-              </div>
-
-              <h1 className="text-3xl font-bold text-[#071015]">
-                {product.name}
-              </h1>
-
-              {product.one_liner && (
-                <p className="text-gray-500 mt-2 max-w-2xl">
-                  {product.one_liner}
-                </p>
+              {product.version && (
+                <span className="rounded-md bg-white/[0.07] border border-white/[0.09] px-2.5 py-1.5 text-[10px] text-gray-300">
+                  {product.version}
+                </span>
               )}
 
             </div>
 
 
-            {/* Review actions */}
+            {/* Product Name */}
+            <h1 className="cf-display text-[32px] md:text-[38px] leading-tight font-bold tracking-[-0.025em] text-white">
+              {product.name}
+            </h1>
 
-            <div className="flex items-center gap-3">
+            {/* One liner */}
+            {product.one_liner && (
+              <p className="mt-2 max-w-[780px] text-[14px] md:text-[15px] leading-6 text-gray-300">
+                {product.one_liner}
+              </p>
+            )}
 
-              <button
-  type="button"
-  onClick={() => setShowChangesModal(true)}
-  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
->
-  <XCircle size={16} />
-  Request changes
-</button>
-
-<button
-  type="button"
-  onClick={handleApprove}
-  disabled={actionLoading}
-  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#071015] text-white text-sm font-semibold hover:bg-[#162126] transition disabled:opacity-50 disabled:cursor-not-allowed"
->
-  <CheckCircle size={16} />
-
-  {actionLoading ? "Approving..." : "Approve"}
-</button>
-
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2 mt-4">
+              {product.company && <SmallDarkTag text={product.company} />}
+              {product.headquarters && <SmallDarkTag text={product.headquarters} />}
+              {product.founded && <SmallDarkTag text={`Founded ${product.founded}`} />}
             </div>
 
           </div>
-          {showChangesModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
 
-    <div className="w-full max-w-lg rounded-xl bg-white shadow-xl">
 
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
-        <div>
-          <h2 className="text-lg font-semibold text-[#071015]">
-            Request Changes
-          </h2>
+          {/* =================================================
+              METRICS BAR
+          ================================================= */}
 
-          <p className="text-sm text-gray-500 mt-1">
-            Tell the founder what needs to be updated.
-          </p>
+          <div className="relative grid grid-cols-2 md:grid-cols-4 border-t border-white/[0.08] bg-[#050b0e]/90">
+
+            <Metric label="USERS" value={product.users} />
+            <Metric label="CUSTOMERS" value={product.customers} />
+            <Metric label="TRACTION" value={product.traction} />
+            <Metric label="FUNDS RAISED" value={product.funds_raised} />
+
+          </div>
+
+        </section>
+
+
+        {/* =================================================
+            MAIN CONTENT
+        ================================================= */}
+
+        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-5 mt-5">
+
+          {/* ===============================================
+              LEFT COLUMN
+          ================================================ */}
+
+          <main className="min-w-0">
+
+            {/* VIDEO DEMO */}
+
+            <section className="bg-white rounded-xl border border-gray-200 p-2.5 shadow-[0_2px_10px_rgba(15,23,42,0.05)]">
+
+              <div className="relative aspect-[16/7] rounded-lg overflow-hidden bg-[#061114] border border-[#152b2f]">
+
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#123f46_0%,#071a1e_38%,#050d10_78%)]" />
+
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px] rounded-full bg-[#0b6a76]/20 blur-3xl" />
+
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/[0.10] border border-white/[0.25] backdrop-blur-sm flex items-center justify-center">
+                  <Play size={23} fill="white" className="text-white ml-1" />
+                </div>
+
+                {product.demo_video_url && (
+                  <a
+                    href={product.demo_video_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute inset-0 z-10"
+                    aria-label="Watch product demo"
+                  />
+                )}
+
+              </div>
+
+              <div className="flex items-center justify-between px-1 pt-2 pb-1">
+                <span className="text-[12px] text-gray-400">
+                  Product walkthrough
+                </span>
+                <span className="text-[12px] text-gray-400">
+                  {product.demo_video_url ? "Watch demo" : "Demo video not provided"}
+                </span>
+              </div>
+
+            </section>
+
+
+            {/* CONTENT CARDS */}
+
+            <div className="space-y-4 mt-4">
+
+              <ContentCard label="DESCRIPTION" value={product.description} />
+
+              <ContentCard label="THE PROBLEM" value={product.problem} />
+
+              <ContentCard label="HOW IT WORKS" value={product.how_it_works} />
+
+              <ContentCard
+                label="IDEAL CUSTOMER PROFILE"
+                value={product.ideal_customer_profile}
+              />
+
+              <BulletCard
+                label="VALUE PROPOSITION"
+                value={product.value_proposition}
+              />
+
+              <BulletCard label="HIGHLIGHTS" value={product.highlights} />
+
+              <BulletCard label="ROADMAP" value={product.roadmap} />
+
+              {product.key_clients && (
+                <ContentCard label="KEY CLIENTS" value={product.key_clients} />
+              )}
+
+              {/* MEDIA & LINKS */}
+
+              <section className="compact-card">
+
+                <SectionTitle title="MEDIA & LINKS" />
+
+                <div className="space-y-3">
+                  <LinkField label="Demo Video" value={product.demo_video_url} />
+                  <LinkField label="Pitch Deck" value={product.pitch_deck_url} />
+                  <LinkField label="Website" value={product.website_url} />
+                  <LinkField label="Thumbnail" value={product.thumbnail_url} />
+                </div>
+
+              </section>
+
+            </div>
+
+          </main>
+
+
+          {/* ===============================================
+              RIGHT SIDEBAR
+          ================================================ */}
+
+          <aside className="space-y-4">
+
+            {/* AT A GLANCE */}
+
+            <section className="compact-card">
+
+              <SectionTitle title="AT A GLANCE" />
+
+              <div className="space-y-3">
+                <SideInfo label="Stage" value={formatStage(product.stage)} />
+                <SideInfo label="Origin" value={formatOrigin(product.origin)} />
+                <SideInfo label="Version" value={product.version} />
+                <SideInfo label="Company" value={product.company} />
+                <SideInfo label="Headquarters" value={product.headquarters} />
+                <SideInfo label="Founded" value={product.founded} />
+                <SideInfo label="Team Size" value={product.team_size} />
+                <SideInfo label="Deployment" value={product.deployment} />
+                <SideInfo label="Pricing" value={product.pricing} />
+              </div>
+
+            </section>
+
+
+            {/* FOUNDERS & TEAM */}
+
+            <section className="compact-card">
+              <SectionTitle title="FOUNDERS & TEAM" />
+              <BulletContent value={product.founders_team} />
+            </section>
+
+
+            {/* COMPLIANCE */}
+
+            <section className="compact-card">
+              <SectionTitle title="COMPLIANCE" />
+              <TagContent value={product.compliance} />
+            </section>
+
+
+            {/* INTEGRATIONS */}
+
+            <section className="compact-card">
+              <SectionTitle title="INTEGRATIONS" />
+              <TagContent value={product.integrations} />
+            </section>
+
+
+            {/* WORKFLOW INFO */}
+
+            <section className="compact-card">
+              <SectionTitle title="WORKFLOW" />
+              <div className="space-y-3">
+                <SideInfo label="Status" value={product.status} />
+                <SideInfo
+                  label="Founder"
+                  value={
+                    founders.find((f) => f.id === product.founder_id)?.full_name ||
+                    (product.founder_id ? `#${product.founder_id}` : undefined)
+                  }
+                />
+              </div>
+            </section>
+
+          </aside>
+
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowChangesModal(false)}
-          className="text-gray-400 hover:text-gray-700"
-        >
-          <XCircle size={20} />
-        </button>
       </div>
 
-      {/* Body */}
-      <div className="p-6">
 
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Review note
-        </label>
+      {/* LOCAL STYLES */}
 
-        <textarea
-          value={reviewNote}
-          onChange={(e) => setReviewNote(e.target.value)}
-          rows={5}
-          placeholder="Example: Please update the pricing information and add your latest traction numbers."
-          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-[#071015] resize-none"
-        />
-
-      </div>
-
-      {/* Footer */}
-      <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
-
-        <button
-          type="button"
-          onClick={() => {
-            setShowChangesModal(false);
-            setReviewNote("");
-          }}
-          className="px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50"
-        >
-          Cancel
-        </button>
-
-<button
-  type="button"
-  onClick={handleRequestChanges}
-  disabled={actionLoading || !reviewNote.trim()}
-  className="px-4 py-2.5 rounded-lg bg-[#071015] text-white text-sm font-semibold hover:bg-[#162126] disabled:opacity-50 disabled:cursor-not-allowed"
->
-  {actionLoading ? "Sending..." : "Request Changes"}
-</button>
-
-      </div>
-
-    </div>
-  </div>
-)}
-
-        </div>
-
-
-        {/* =================================================
-            BASIC INFORMATION
-        ================================================= */}
-
-        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
-
-          <div className="px-6 py-5 border-b border-gray-100">
-
-            <h2 className="text-lg font-semibold text-gray-900">
-              Basic Information
-            </h2>
-
-          </div>
-
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            <InfoField
-              label="Product name"
-              value={product.name}
-            />
-
-            <InfoField
-              label="Version"
-              value={product.version}
-            />
-
-            <InfoField
-              label="Stage"
-              value={product.stage}
-            />
-
-            <InfoField
-              label="Origin"
-              value={product.origin}
-            />
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-            PRODUCT DETAILS
-        ================================================= */}
-
-        <ProductSection
-          title="Product Details"
-          fields={[
-            ["Description", product.description],
-            ["The Problem", product.problem],
-            ["How It Works", product.how_it_works],
-            [
-              "Ideal Customer Profile",
-              product.ideal_customer_profile,
-            ],
-            [
-              "Value Proposition",
-              product.value_proposition,
-            ],
-            ["Highlights", product.highlights],
-          ]}
-        />
-
-
-        {/* =================================================
-            COMPANY
-        ================================================= */}
-
-        <ProductSection
-          title="Company"
-          fields={[
-            ["Company", product.company],
-            ["Headquarters", product.headquarters],
-            ["Founded", product.founded],
-            ["Team Size", product.team_size],
-            ["Deployment", product.deployment],
-            ["Pricing", product.pricing],
-          ]}
-        />
-
-
-        {/* =================================================
-            FOUNDERS & BUSINESS
-        ================================================= */}
-
-        <ProductSection
-          title="Founders & Business"
-          fields={[
-            ["Founders & Team", product.founders_team],
-            ["Key Clients", product.key_clients],
-            ["Roadmap", product.roadmap],
-            ["Compliance", product.compliance],
-            ["Integrations", product.integrations],
-          ]}
-        />
-
-
-        {/* =================================================
-            METRICS
-        ================================================= */}
-
-        <ProductSection
-          title="Metrics"
-          fields={[
-            ["Users", product.users],
-            ["Customers", product.customers],
-            ["Traction", product.traction],
-            ["Funds Raised", product.funds_raised],
-          ]}
-        />
-
-
-        {/* =================================================
-            MEDIA & LINKS
-        ================================================= */}
-
-        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
-
-          <div className="px-6 py-5 border-b border-gray-100">
-
-            <h2 className="text-lg font-semibold text-gray-900">
-              Media & Links
-            </h2>
-
-          </div>
-
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-
-            <MediaLink
-              icon={<Video size={18} />}
-              label="Demo Video"
-              value={product.demo_video_url}
-            />
-
-            <MediaLink
-              icon={<FileText size={18} />}
-              label="Pitch Deck"
-              value={product.pitch_deck_url}
-            />
-
-            <MediaLink
-              icon={<Globe size={18} />}
-              label="Website"
-              value={product.website_url}
-            />
-
-            <MediaLink
-              icon={<ImageIcon size={18} />}
-              label="Thumbnail"
-              value={product.thumbnail_url}
-            />
-
-          </div>
-
-        </section>
-
-
-        {/* =================================================
-            WORKFLOW
-        ================================================= */}
-
-        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-10">
-
-          <div className="px-6 py-5 border-b border-gray-100">
-
-            <h2 className="text-lg font-semibold text-gray-900">
-              Workflow
-            </h2>
-
-          </div>
-
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            <InfoField
-              label="Status"
-              value={product.status}
-            />
-
-            <InfoField
-              label="Founder ID"
-              value={product.founder_id}
-            />
-
-          </div>
-
-        </section>
-
-      </main>
+      <style>{`
+        .compact-card {
+          background: white;
+          border: 1px solid #e5e7eb;
+          border-radius: 13px;
+          padding: 20px;
+          box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+        }
+      `}</style>
 
     </div>
   );
 }
 
 
-/* =========================================================
-   INFO FIELD
-========================================================= */
+// =============================================================
+// SMALL DARK TAG
+// =============================================================
 
-function InfoField({ label, value }) {
+function SmallDarkTag({ text }) {
   return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+    <span className="inline-flex items-center rounded-md bg-white/[0.07] border border-white/[0.09] px-2.5 py-1.5 text-[10px] text-gray-300">
+      {text}
+    </span>
+  );
+}
+
+
+// =============================================================
+// METRIC
+// =============================================================
+
+function Metric({ label, value }) {
+  const empty =
+    value === null || value === undefined || String(value).trim() === "";
+
+  return (
+    <div className="px-5 py-4 border-r border-white/[0.08] last:border-r-0">
+      <p className="text-[9px] tracking-[0.18em] font-semibold text-gray-500">
         {label}
       </p>
-
-      <p className="mt-2 text-sm text-gray-800 whitespace-pre-wrap">
-        {value || "Not provided"}
+      <p className="text-base font-bold text-white mt-1.5">
+        {empty ? "\u00a0" : value}
       </p>
     </div>
   );
 }
 
 
-/* =========================================================
-   PRODUCT SECTION
-========================================================= */
+// =============================================================
+// CONTENT CARD
+// =============================================================
 
-function ProductSection({ title, fields }) {
-  const visibleFields = fields.filter(
-    ([, value]) =>
-      value !== null &&
-      value !== undefined &&
-      value !== ""
-  );
-
-  if (visibleFields.length === 0) {
-    return null;
-  }
+function ContentCard({ label, value }) {
+  const empty =
+    value === null || value === undefined || String(value).trim() === "";
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
-
-      <div className="px-6 py-5 border-b border-gray-100">
-
-        <h2 className="text-lg font-semibold text-gray-900">
-          {title}
-        </h2>
-
-      </div>
-
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        {visibleFields.map(([label, value]) => (
-          <InfoField
-            key={label}
-            label={label}
-            value={value}
-          />
-        ))}
-
-      </div>
-
+    <section className="compact-card">
+      <SectionTitle title={label} />
+      <p
+        className={`text-[14px] leading-7 whitespace-pre-line ${
+          empty ? "text-gray-300" : "text-gray-700"
+        }`}
+      >
+        {empty ? "\u00a0" : value}
+      </p>
     </section>
   );
 }
 
 
-/* =========================================================
-   MEDIA LINK
-========================================================= */
+// =============================================================
+// BULLET CARD
+// =============================================================
 
-function MediaLink({ icon, label, value }) {
+function BulletCard({ label, value }) {
   return (
-    <div className="flex items-center justify-between gap-4 border border-gray-200 rounded-xl p-4">
+    <section className="compact-card">
+      <SectionTitle title={label} />
+      <BulletContent value={value} />
+    </section>
+  );
+}
 
-      <div className="flex items-center gap-3 min-w-0">
+function BulletContent({ value }) {
+  const items = String(value || "")
+    .split(/\n|\u2022/)
+    .map((item) => item.replace(/^[-*]\s*/, "").trim())
+    .filter(Boolean);
 
-        <div className="w-9 h-9 rounded-lg bg-[#eef2f3] flex items-center justify-center text-[#071015]">
-          {icon}
-        </div>
+  if (items.length === 0) {
+    return <p className="text-[13px] text-gray-300">&nbsp;</p>;
+  }
 
-        <div className="min-w-0">
+  return (
+    <ul className="list-disc space-y-2 pl-5 text-[13px] leading-6 text-gray-700 marker:text-[#0097c1]">
+      {items.map((item, index) => (
+        <li key={`${item}-${index}`}>{item}</li>
+      ))}
+    </ul>
+  );
+}
 
-          <p className="text-sm font-semibold text-gray-800">
-            {label}
-          </p>
 
-          <p className="text-xs text-gray-400 truncate">
-            {value || "Not provided"}
-          </p>
+// =============================================================
+// SECTION TITLE
+// =============================================================
 
-        </div>
+function SectionTitle({ title }) {
+  return (
+    <p className="text-[11px] tracking-[0.20em] font-semibold text-gray-400 uppercase mb-4">
+      {title}
+    </p>
+  );
+}
 
+
+// =============================================================
+// SIDEBAR INFO
+// =============================================================
+
+function SideInfo({ label, value }) {
+  const empty =
+    value === null || value === undefined || String(value).trim() === "";
+
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-dashed border-gray-200 pb-3">
+      <span className="text-[12px] text-gray-500">{label}</span>
+      <span
+        className={`text-[12px] font-semibold text-right leading-5 max-w-[165px] ${
+          empty ? "text-gray-300" : "text-gray-800"
+        }`}
+      >
+        {empty ? "\u00a0" : value}
+      </span>
+    </div>
+  );
+}
+
+
+// =============================================================
+// TAG CONTENT
+// =============================================================
+
+function TagContent({ value }) {
+  const empty =
+    value === null || value === undefined || String(value).trim() === "";
+
+  if (empty) {
+    return (
+      <div className="min-h-[24px] text-[12px] text-gray-300">&nbsp;</div>
+    );
+  }
+
+  const items = String(value)
+    .split(/[,|\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map((item, index) => (
+        <span
+          key={`${item}-${index}`}
+          className="inline-flex px-2 py-1 rounded-md bg-gray-100 border border-gray-200 text-[11px] text-gray-500"
+        >
+          {item}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+
+// =============================================================
+// LINK FIELD
+// =============================================================
+
+function LinkField({ label, value }) {
+  const empty =
+    value === null || value === undefined || String(value).trim() === "";
+
+  return (
+    <div className="flex items-center justify-between gap-4 border-b border-gray-100 pb-3">
+
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase tracking-[0.12em] font-semibold text-gray-400">
+          {label}
+        </p>
+        <p
+          className={`text-[12px] mt-1 truncate ${
+            empty ? "text-gray-300" : "text-gray-500"
+          }`}
+        >
+          {empty ? "\u00a0" : value}
+        </p>
       </div>
 
-      {value && (
+      {!empty && (
         <a
           href={value}
           target="_blank"
-          rel="noreferrer"
-          className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-[#0788b5] hover:underline"
+          rel="noopener noreferrer"
+          className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-gray-200 text-[11px] font-semibold text-gray-600 hover:bg-gray-50 transition"
         >
           Open
-          <ExternalLink size={13} />
+          <ExternalLink size={11} />
         </a>
       )}
 

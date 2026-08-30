@@ -1,16 +1,15 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
-  Boxes,
-  MessageSquare,
   LogOut,
+  ChevronsLeft,
+  ChevronsRight,
+  Menu,
+  X,
 } from "lucide-react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
-import {
-  NavLink,
-  Outlet,
-  useNavigate,
-} from "react-router-dom";
+const BRAND = "#0097c1";
 
 const NAV_ITEMS = [
   {
@@ -18,20 +17,46 @@ const NAV_ITEMS = [
     label: "Overview",
     icon: LayoutDashboard,
   },
-  {
-    key: "products",
-    label: "My Products",
-    icon: Boxes,
-  },
-  {
-    key: "questions",
-    label: "Questions",
-    icon: MessageSquare,
-  },
 ];
 
 export default function FounderLayout() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isOverviewActive =
+    pathname === "/founder/overview" ||
+    pathname.startsWith("/founder/products/");
+
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // =========================================================
+  // USER
+  // =========================================================
+
+  const fullName =
+    sessionStorage.getItem("full_name") || "Founder";
+
+  // =========================================================
+  // RESPONSIVE
+  // =========================================================
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMobileOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  // =========================================================
+  // LOGOUT
+  // =========================================================
 
   function logout() {
     sessionStorage.removeItem("access_token");
@@ -41,348 +66,692 @@ export default function FounderLayout() {
     navigate("/");
   }
 
+  // =========================================================
+  // SIDEBAR WIDTH
+  // SAME AS GUEST / ADMIN
+  // =========================================================
+
+  const sidebarWidth = collapsed
+    ? "w-[72px]"
+    : "w-[252px]";
+
   return (
     <>
+      {/* =====================================================
+          CALIFOLIO FOUNDER STYLES
+      ====================================================== */}
+
       <style>{`
-        .founder-root {
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap');
+
+        .cf-root {
           font-family: 'Inter', sans-serif;
         }
 
-        .founder-display {
+        .cf-display {
           font-family: 'Sora', sans-serif;
         }
 
-        .founder-mono {
+        .cf-mono {
           font-family: 'JetBrains Mono', monospace;
-          letter-spacing: 0.06em;
+          letter-spacing: 0.08em;
         }
 
-        .founder-sidebar {
-          width: 256px;
-          flex-shrink: 0;
+        .cf-sidebar {
+          transition:
+            width 200ms ease,
+            transform 200ms ease;
         }
 
-        .founder-main {
-          min-width: 0;
-          overflow-y: auto;
-          overflow-x: hidden;
+        .cf-no-scrollbar::-webkit-scrollbar {
+          display: none;
         }
 
-        .founder-content {
-          width: 100%;
-          max-width: 1180px;
-          margin: 0 auto;
-        }
-
-        @media (max-width: 1023px) {
-          .founder-sidebar {
-            width: 220px;
-          }
-        }
-
-        @media (max-width: 767px) {
-          .founder-sidebar {
-            display: none;
-          }
+        .cf-no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
 
-      <div className="founder-root h-screen overflow-hidden bg-[#f3f6f7] text-slate-800">
+
+      {/* =====================================================
+          ROOT
+      ====================================================== */}
+
+      <div className="cf-root flex h-screen w-full overflow-hidden bg-[#f3f6f7]">
 
         {/* =====================================================
-            TOP HEADER
+            MOBILE OVERLAY
         ====================================================== */}
 
-        <header
-          className="
-            h-16
-            shrink-0
-            bg-white
-            border-b
-            border-gray-200
+        {mobileOpen && (
+          <div
+            onClick={() => setMobileOpen(false)}
+            className="
+              fixed
+              inset-0
+              z-30
+              bg-black/30
+              lg:hidden
+            "
+          />
+        )}
+
+
+        {/* =====================================================
+            SIDEBAR
+            SAME SIZE / STYLE AS GUEST / ADMIN
+        ====================================================== */}
+
+        <aside
+          className={`
+            cf-sidebar
+            fixed
+            lg:relative
+            z-40
+            inset-y-0
+            left-0
             flex
-            items-center
-            justify-between
-            px-5
-            lg:px-7
-          "
+            flex-col
+            shrink-0
+            bg-[#f7f9fa]
+            border-r
+            border-[#e2e7e9]
+            ${sidebarWidth}
+
+            ${
+              mobileOpen
+                ? "translate-x-0"
+                : "-translate-x-full lg:translate-x-0"
+            }
+          `}
         >
 
-          {/* Logo */}
+          {/* =================================================
+              LOGO
+          ================================================== */}
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div
+            className={`
+              h-[72px]
+              shrink-0
+              flex
+              items-center
+              border-b
+              border-[#e5e9eb]
+              ${collapsed ? "justify-center px-3" : "px-6"}
+            `}
+          >
 
-            <div className="w-9 h-9 rounded-lg bg-[#071014] flex items-center justify-center">
-              <span className="founder-display font-bold text-white text-sm">
-                CF
-              </span>
-            </div>
+            {!collapsed ? (
+              <div className="flex items-center gap-3">
 
-            <div className="flex items-center gap-3">
+                {/* =================================================
+                    CaliFolio
+                    CALI = BLACK
+                    FOLIO = BLUE
+                ================================================== */}
 
-              <p className="founder-display font-bold text-gray-900 text-sm">
-                CaliFolio
-              </p>
+                <div className="relative flex items-center">
 
-              <div className="w-px h-5 bg-gray-300" />
+                  <span
+                    className="
+                      cf-display
+                      text-[18px]
+                      font-extrabold
+                      tracking-[0.08em]
+                      text-[#11181c]
+                    "
+                  >
+                    Cali
+                  </span>
 
-              <p className="text-sm text-gray-500">
-                Founder
-              </p>
+                  <span
+                    className="
+                      cf-display
+                      text-[18px]
+                      font-extrabold
+                      tracking-[0.08em]
+                    "
+                    style={{
+                      color: BRAND,
+                    }}
+                  >
+                    Folio
+                  </span>
 
-            </div>
-
-          </div>
+                </div>
 
 
-          {/* Search */}
+                {/* DIVIDER */}
 
-          <div className="hidden md:flex flex-1 max-w-[520px] mx-8 lg:mx-12">
+                <div className="w-px h-5 bg-[#d7dde0]" />
 
-            <div className="relative w-full">
 
-              <svg
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle
-                  cx="11"
-                  cy="11"
-                  r="7"
-                />
+                {/* FOUNDER */}
 
-                <path d="m20 20-3.5-3.5" />
-              </svg>
+                <span
+                  className="
+                    text-[12px]
+                    font-medium
+                    text-[#68777d]
+                  "
+                >
+                  Founder
+                </span>
 
-              <input
-                type="text"
-                placeholder="Search the catalogue..."
+              </div>
+            ) : (
+
+              /* =================================================
+                 COLLAPSED LOGO
+              ================================================== */
+
+              <div
                 className="
-                  w-full
-                  h-10
-                  pl-10
-                  pr-4
+                  w-9
+                  h-9
                   rounded-lg
-                  border
-                  border-gray-200
-                  bg-[#f7f9f9]
-                  text-sm
-                  text-gray-700
-                  placeholder-gray-400
-                  outline-none
-                  focus:border-[#18b8c8]
-                  focus:ring-2
-                  focus:ring-[#18b8c8]/10
+                  bg-black
+                  flex
+                  items-center
+                  justify-center
                 "
-              />
+              >
+                <span
+                  className="
+                    cf-display
+                    text-[11px]
+                    font-bold
+                    text-white
+                  "
+                >
+                  CF
+                </span>
+              </div>
 
-            </div>
-
-          </div>
-
-
-          {/* Right side */}
-
-          <div className="flex items-center gap-2.5 shrink-0">
-
-            <div className="hidden sm:flex items-center bg-gray-100 border border-gray-200 rounded-full p-1">
-
-              <span className="px-3.5 py-1.5 rounded-full bg-[#071014] text-white text-xs font-semibold">
-                Founder
-              </span>
+            )}
 
 
-
-            </div>
-
-            <div className="w-9 h-9 rounded-full bg-[#075b76] flex items-center justify-center text-white text-xs font-bold">
-              FD
-            </div>
+            {/* =================================================
+                MOBILE CLOSE
+            ================================================== */}
 
             <button
-              onClick={logout}
-              title="Logout"
+              onClick={() => setMobileOpen(false)}
               className="
-                w-9
-                h-9
+                lg:hidden
+                ml-auto
+                w-8
+                h-8
+                rounded-lg
                 flex
                 items-center
                 justify-center
-                rounded-lg
-                text-gray-500
-                hover:bg-red-50
-                hover:text-red-600
-                transition-colors
+                text-[#718087]
+                hover:bg-black/5
+                transition
               "
+              aria-label="Close menu"
             >
-              <LogOut size={17} />
+              <X size={17} />
             </button>
 
           </div>
 
-        </header>
-
-
-        {/* =====================================================
-            BODY
-        ====================================================== */}
-
-        <div className="flex h-[calc(100vh-4rem)] min-h-0">
-
 
           {/* =================================================
-              SIDEBAR
+              NAVIGATION
           ================================================== */}
 
-          <aside
+          <nav
             className="
-              founder-sidebar
-              bg-[#f7f9fa]
-              border-r
-              border-gray-200
-              flex
-              flex-col
+              flex-1
+              min-h-0
+              px-4
+              pt-7
               overflow-hidden
             "
           >
 
-            {/* Navigation */}
+            {/* =================================================
+                WORKSPACE
+            ================================================== */}
 
-            <nav className="flex-1 min-h-0 px-4 py-7">
-
-              <p className="founder-mono text-[10px] text-gray-400 uppercase mb-4 px-2">
+            {!collapsed && (
+              <p
+                className="
+                  cf-mono
+                  px-3
+                  mb-3
+                  text-[9px]
+                  font-medium
+                  uppercase
+                  text-[#9aa6ab]
+                "
+              >
                 Workspace
               </p>
+            )}
 
-              <div className="space-y-1">
 
-                {NAV_ITEMS.map((item) => {
+            <div className="space-y-1">
 
-                  const Icon = item.icon;
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const isActive =
+                  item.key === "overview" && isOverviewActive;
 
-                  return (
-                    <NavLink
-                      key={item.key}
-                      to={`/founder/${item.key}`}
-                      className={({ isActive }) =>
-                        `
-                        flex
-                        items-center
-                        gap-3
-                        px-3
-                        py-2.5
-                        rounded-lg
-                        text-sm
-                        font-medium
-                        transition-all
-                        ${
-                          isActive
-                            ? "bg-[#071014] text-white shadow-sm"
-                            : "text-gray-500 hover:bg-gray-200/70 hover:text-gray-900"
-                        }
-                        `
+                return (
+                  <NavLink
+                    key={item.key}
+                    to={`/founder/${item.key}`}
+                    title={collapsed ? item.label : undefined}
+                    onClick={() => setMobileOpen(false)}
+                    className={() => `
+                      group
+                      flex
+                      items-center
+                      ${
+                        collapsed
+                          ? "justify-center"
+                          : "gap-3"
                       }
-                    >
+                      w-full
+                      min-h-[42px]
+                      px-3
+                      rounded-[7px]
+                      transition-all
+                      duration-150
 
-                      <Icon
-                        size={17}
-                        strokeWidth={1.9}
-                        className="shrink-0"
-                      />
+                      ${
+                        isActive
+                          ? "bg-black text-white shadow-sm"
+                          : "text-[#64747b] hover:bg-[#e9edef] hover:text-[#1d292e]"
+                      }
+                    `}
+                  >
+                    {() => (
+                      <>
+                        <Icon
+                          size={17}
+                          strokeWidth={
+                            isActive ? 2.2 : 1.8
+                          }
+                          className="shrink-0"
+                        />
 
-                      <span>
-                        {item.label}
-                      </span>
-
-                    </NavLink>
-                  );
-
-                })}
-
-              </div>
-
-
-              {/* Divider */}
-
-              <div className="my-7 border-t border-gray-200" />
-
-
-              {/* Founder information */}
-
-              <p className="founder-mono text-[10px] text-gray-400 uppercase mb-4 px-2">
-                Your workspace
-              </p>
-
-              <div className="px-3">
-
-                <div className="flex items-center gap-3">
-
-                  <div className="w-9 h-9 rounded-full bg-[#075b76] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                    FD
-                  </div>
-
-                  <div className="min-w-0">
-
-                    <p className="text-sm font-semibold text-gray-800 truncate">
-                      Founder
-                    </p>
-
-                    <p className="text-xs text-gray-400 truncate">
-                      Product owner
-                    </p>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </nav>
-
-
-            {/* Sidebar footer */}
-
-            <div className="shrink-0 px-5 py-5 border-t border-gray-200">
-
-              <p className="founder-mono text-[9px] text-gray-400 uppercase">
-                Founder workspace
-              </p>
-
-              <p className="text-xs text-gray-400 mt-1">
-                CaliFolio
-              </p>
+                        {!collapsed && (
+                          <span
+                            className={`
+                              text-[13px]
+                              ${
+                                isActive
+                                  ? "font-medium text-white"
+                                  : "font-medium"
+                              }
+                            `}
+                          >
+                            {item.label}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
 
             </div>
 
-          </aside>
+          </nav>
 
 
           {/* =================================================
-              MAIN CONTENT
+              LOGOUT + COLLAPSE AREA
+          ================================================== */}
+
+          <div
+            className="
+              shrink-0
+              px-4
+              pb-3
+            "
+          >
+
+            {/* =================================================
+                LOGOUT
+            ================================================== */}
+
+            <button
+              type="button"
+              onClick={logout}
+              title={
+                collapsed
+                  ? "Logout"
+                  : undefined
+              }
+              className={`
+                flex
+                items-center
+                ${
+                  collapsed
+                    ? "justify-center"
+                    : "justify-start gap-3"
+                }
+                w-full
+                min-h-[40px]
+                px-3
+                rounded-[7px]
+                text-[12px]
+                font-medium
+                text-[#77858a]
+                hover:bg-[#e9edef]
+                hover:text-[#1d292e]
+                transition
+              `}
+            >
+
+              <LogOut
+                size={17}
+                strokeWidth={1.8}
+                className="shrink-0"
+              />
+
+              {!collapsed && (
+                <span>
+                  Logout
+                </span>
+              )}
+
+            </button>
+
+
+            {/* =================================================
+                COLLAPSE
+
+                SAME POSITION / SIZE AS GUEST / ADMIN
+            ================================================== */}
+
+            <button
+              type="button"
+              onClick={() =>
+                setCollapsed((value) => !value)
+              }
+              className={`
+                hidden
+                lg:flex
+                items-center
+                ${
+                  collapsed
+                    ? "justify-center"
+                    : "justify-start gap-3"
+                }
+                w-full
+                min-h-[40px]
+                px-3
+                rounded-[7px]
+                text-[12px]
+                font-medium
+                text-[#77858a]
+                hover:bg-[#e9edef]
+                hover:text-[#1d292e]
+                transition
+                mt-1
+              `}
+              title={
+                collapsed
+                  ? "Expand"
+                  : "Collapse"
+              }
+            >
+
+              {collapsed ? (
+                <ChevronsRight size={17} />
+              ) : (
+                <>
+                  <ChevronsLeft size={17} />
+                  <span>
+                    Collapse
+                  </span>
+                </>
+              )}
+
+            </button>
+
+          </div>
+
+
+          {/* =================================================
+              FOOTER
+          ================================================== */}
+
+          <div
+            className={`
+              shrink-0
+              border-t
+              border-[#e2e7e9]
+              py-4
+              ${collapsed ? "px-2" : "px-6"}
+            `}
+          >
+
+            {!collapsed ? (
+              <p className="cf-mono text-[8px] text-[#a0aaae]">
+                V1.0 · BUILT FOR CALIFOLIO
+              </p>
+            ) : (
+              <p
+                className="
+                  cf-mono
+                  text-[8px]
+                  text-[#a0aaae]
+                  text-center
+                "
+              >
+                V1.0
+              </p>
+            )}
+
+          </div>
+
+        </aside>
+
+
+        {/* =====================================================
+            MAIN COLUMN
+        ====================================================== */}
+
+        <div className="flex-1 min-w-0 h-screen flex flex-col">
+
+          {/* =================================================
+              HEADER
+              SAME 72px HEIGHT AS GUEST / ADMIN
+          ================================================== */}
+
+          <header
+            className="
+              h-[72px]
+              shrink-0
+              bg-white
+              border-b
+              border-[#e2e7e9]
+              px-4
+              sm:px-7
+              flex
+              items-center
+              justify-between
+            "
+          >
+
+            {/* =================================================
+                LEFT
+            ================================================== */}
+
+            <div
+              className="
+                flex
+                items-center
+                gap-3
+                min-w-0
+              "
+            >
+
+              {/* MOBILE MENU */}
+
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="
+                  lg:hidden
+                  w-9
+                  h-9
+                  rounded-lg
+                  flex
+                  items-center
+                  justify-center
+                  text-[#5f6d73]
+                  hover:bg-gray-100
+                "
+                aria-label="Open menu"
+              >
+                <Menu size={19} />
+              </button>
+
+
+              {/* HEADER TITLE */}
+
+              <div className="min-w-0">
+
+                <h1
+                  className="
+                    cf-display
+                    text-[15px]
+                    sm:text-[17px]
+                    font-bold
+                    text-[#12191d]
+                    truncate
+                  "
+                >
+                  Founder Dashboard
+                </h1>
+
+                <p
+                  className="
+                    hidden
+                    sm:block
+                    text-[11px]
+                    text-[#8a969b]
+                    mt-0.5
+                  "
+                >
+                  Manage your products and questions
+                </p>
+
+              </div>
+
+            </div>
+
+
+            {/* =================================================
+                RIGHT
+            ================================================== */}
+
+            <div
+              className="
+                flex
+                items-center
+                gap-3
+                sm:gap-4
+                shrink-0
+              "
+            >
+
+              {/* =================================================
+                  FOUNDER PILL
+              ================================================== */}
+
+              <span
+                className="
+                  hidden
+                  sm:flex
+                  items-center
+                  gap-1.5
+                  rounded-full
+                  bg-black
+                  px-3
+                  py-1.5
+                  text-[10px]
+                  font-semibold
+                  text-white
+                "
+              >
+                Founder
+              </span>
+
+
+              {/* =================================================
+                  LOGGED-IN USER CARD
+              ================================================== */}
+<div className="min-w-0 leading-tight">
+  <p
+    className="
+      text-[12px]
+      font-semibold
+      text-[#1d292e]
+      truncate
+    "
+  >
+    {fullName}
+  </p>
+</div>
+
+
+              {/* =================================================
+                  LOGOUT
+              ================================================== */}
+
+              <button
+                onClick={logout}
+                title="Logout"
+                className="
+                  w-8
+                  h-8
+                  rounded-lg
+                  flex
+                  items-center
+                  justify-center
+                  text-[#7b898f]
+                  hover:bg-red-50
+                  hover:text-red-600
+                  transition
+                "
+              >
+                <LogOut size={16} />
+              </button>
+
+            </div>
+
+          </header>
+
+
+          {/* =================================================
+              PAGE CONTENT
 
               ONLY THIS AREA SCROLLS
           ================================================== */}
 
           <main
             className="
-              founder-main
               flex-1
-              min-w-0
+              min-h-0
+              overflow-y-auto
+              overflow-x-hidden
               bg-[#f3f6f7]
+              p-4
+              sm:p-6
+              lg:p-7
             "
           >
-
-            <div className="founder-content px-5 py-7 sm:px-7 lg:px-9 lg:py-8">
-
-              <Outlet />
-
-            </div>
-
+            <Outlet />
           </main>
 
         </div>

@@ -12,6 +12,7 @@ import {
 import { NavLink, Outlet } from "react-router-dom";
 
 const BRAND = "#0097c1";
+const API_URL = "http://127.0.0.1:8000";
 
 const NAV_ITEMS = [
   {
@@ -30,6 +31,26 @@ const NAV_ITEMS = [
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pendingQuestionCount, setPendingQuestionCount] = useState(0);
+
+  // =========================================================
+  // USER
+  // =========================================================
+
+  const fullName =
+    sessionStorage.getItem("full_name") || "Admin";
+
+  const initials = fullName
+    .split(" ")
+    .filter(Boolean)
+    .map((name) => name.charAt(0))
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  // =========================================================
+  // RESPONSIVE
+  // =========================================================
 
   useEffect(() => {
     const handleResize = () => {
@@ -45,10 +66,45 @@ export default function AdminLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    async function loadPendingQuestionCount() {
+      try {
+        const token = sessionStorage.getItem("access_token");
+        if (!token) return;
+        const res = await fetch(`${API_URL}/product-questions/admin`, {
+          headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const questions = await res.json();
+        setPendingQuestionCount(questions.filter((question) => question.status === "pending").length);
+      } catch (err) {
+        console.error("Failed to load pending question count:", err);
+      }
+    }
+
+    loadPendingQuestionCount();
+    const intervalId = window.setInterval(loadPendingQuestionCount, 15000);
+    window.addEventListener(
+      "admin-question-notifications-updated",
+      loadPendingQuestionCount
+    );
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener(
+        "admin-question-notifications-updated",
+        loadPendingQuestionCount
+      );
+    };
+  }, []);
+
   const sidebarWidth = collapsed ? "w-[72px]" : "w-[252px]";
 
   return (
     <>
+      {/* =====================================================
+          CALIFOLIO ADMIN STYLES
+      ====================================================== */}
+
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -71,7 +127,6 @@ export default function AdminLayout() {
             transform 200ms ease;
         }
 
-        /* Hide scrollbar completely */
         .cf-no-scrollbar::-webkit-scrollbar {
           display: none;
         }
@@ -82,6 +137,11 @@ export default function AdminLayout() {
         }
       `}</style>
 
+
+      {/* =====================================================
+          ROOT
+      ====================================================== */}
+
       <div className="cf-root flex h-screen w-full overflow-hidden bg-[#f3f6f7]">
 
         {/* =====================================================
@@ -91,12 +151,20 @@ export default function AdminLayout() {
         {mobileOpen && (
           <div
             onClick={() => setMobileOpen(false)}
-            className="fixed inset-0 z-30 bg-black/30 lg:hidden"
+            className="
+              fixed
+              inset-0
+              z-30
+              bg-black/30
+              lg:hidden
+            "
           />
         )}
 
+
         {/* =====================================================
             SIDEBAR
+            SAME SIZE / STYLE AS GUEST
         ====================================================== */}
 
         <aside
@@ -114,6 +182,7 @@ export default function AdminLayout() {
             border-r
             border-[#e2e7e9]
             ${sidebarWidth}
+
             ${
               mobileOpen
                 ? "translate-x-0"
@@ -137,17 +206,24 @@ export default function AdminLayout() {
               ${collapsed ? "justify-center px-3" : "px-6"}
             `}
           >
+
             {!collapsed ? (
               <div className="flex items-center gap-3">
 
-                {/* Calinova mark */}
+                {/* =================================================
+                    CaliFolio
+                    CALI = BLACK
+                    FOLIO = BLUE
+                ================================================== */}
+
                 <div className="relative flex items-center">
+
                   <span
                     className="
                       cf-display
                       text-[18px]
                       font-extrabold
-                      tracking-[0.16em]
+                      tracking-[0.08em]
                       text-[#11181c]
                     "
                   >
@@ -159,22 +235,42 @@ export default function AdminLayout() {
                       cf-display
                       text-[18px]
                       font-extrabold
-                      tracking-[0.16em]
+                      tracking-[0.08em]
                     "
-                    style={{ color: BRAND }}
+                    style={{
+                      color: BRAND,
+                    }}
                   >
                     Folio
                   </span>
+
                 </div>
+
+
+                {/* DIVIDER */}
 
                 <div className="w-px h-5 bg-[#d7dde0]" />
 
-                <span className="text-[12px] font-medium text-[#68777d]">
+
+                {/* ADMIN */}
+
+                <span
+                  className="
+                    text-[12px]
+                    font-medium
+                    text-[#68777d]
+                  "
+                >
                   Admin
                 </span>
 
               </div>
             ) : (
+
+              /* =================================================
+                 COLLAPSED LOGO
+              ================================================== */
+
               <div
                 className="
                   w-9
@@ -186,13 +282,25 @@ export default function AdminLayout() {
                   justify-center
                 "
               >
-                <span className="cf-display text-[11px] font-bold text-white">
+                <span
+                  className="
+                    cf-display
+                    text-[11px]
+                    font-bold
+                    text-white
+                  "
+                >
                   CF
                 </span>
               </div>
+
             )}
 
-            {/* Mobile close */}
+
+            {/* =================================================
+                MOBILE CLOSE
+            ================================================== */}
+
             <button
               onClick={() => setMobileOpen(false)}
               className="
@@ -208,15 +316,16 @@ export default function AdminLayout() {
                 hover:bg-black/5
                 transition
               "
+              aria-label="Close menu"
             >
               <X size={17} />
             </button>
+
           </div>
+
 
           {/* =================================================
               NAVIGATION
-
-              No overflow / no sidebar scrolling.
           ================================================== */}
 
           <nav
@@ -229,7 +338,10 @@ export default function AdminLayout() {
             "
           >
 
-            {/* Catalogue heading */}
+            {/* =================================================
+                CATALOGUE
+            ================================================== */}
+
             {!collapsed && (
               <p
                 className="
@@ -245,6 +357,7 @@ export default function AdminLayout() {
                 Catalogue
               </p>
             )}
+
 
             <div className="space-y-1">
 
@@ -262,13 +375,18 @@ export default function AdminLayout() {
                       group
                       flex
                       items-center
-                      ${collapsed ? "justify-center" : "gap-3"}
+                      ${
+                        collapsed
+                          ? "justify-center"
+                          : "gap-3"
+                      }
                       w-full
                       min-h-[42px]
                       px-3
                       rounded-[7px]
                       transition-all
                       duration-150
+
                       ${
                         isActive
                           ? "bg-black text-white shadow-sm"
@@ -280,23 +398,32 @@ export default function AdminLayout() {
                       <>
                         <Icon
                           size={17}
-                          strokeWidth={isActive ? 2.2 : 1.8}
+                          strokeWidth={
+                            isActive ? 2.2 : 1.8
+                          }
                           className="shrink-0"
                         />
 
                         {!collapsed && (
-                          <span
-                            className={`
-                              text-[13px]
-                              ${
-                                isActive
-                                  ? "font-medium text-white"
-                                  : "font-medium"
-                              }
-                            `}
-                          >
-                            {item.label}
-                          </span>
+                          <>
+                            <span
+                              className={`
+                                text-[13px]
+                                ${
+                                  isActive
+                                    ? "font-medium text-white"
+                                    : "font-medium"
+                                }
+                              `}
+                            >
+                              {item.label}
+                            </span>
+                            {item.path === "/admin/software" && pendingQuestionCount > 0 && (
+                              <span className={`ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${isActive ? "bg-white text-[#111B26]" : "bg-[#E5484D] text-white"}`}>
+                                {pendingQuestionCount > 99 ? "99+" : pendingQuestionCount}
+                              </span>
+                            )}
+                          </>
                         )}
                       </>
                     )}
@@ -308,23 +435,35 @@ export default function AdminLayout() {
 
           </nav>
 
+
           {/* =================================================
-              COLLAPSE BUTTON
+              COLLAPSE AREA
+
+              LOGIC IS SAME AS YOUR ADMIN CODE
           ================================================== */}
 
           <div
-            className={`
-              hidden
-              lg:block
+            className="
               shrink-0
               px-4
               pb-3
-            `}
+            "
           >
+
+            {/* =================================================
+                COLLAPSE
+
+                SAME POSITION / SIZE AS GUEST
+            ================================================== */}
+
             <button
-              onClick={() => setCollapsed((value) => !value)}
+              type="button"
+              onClick={() =>
+                setCollapsed((value) => !value)
+              }
               className={`
-                flex
+                hidden
+                lg:flex
                 items-center
                 ${
                   collapsed
@@ -342,17 +481,28 @@ export default function AdminLayout() {
                 hover:text-[#1d292e]
                 transition
               `}
+              title={
+                collapsed
+                  ? "Expand"
+                  : "Collapse"
+              }
             >
+
               {collapsed ? (
                 <ChevronsRight size={17} />
               ) : (
                 <>
                   <ChevronsLeft size={17} />
-                  <span>Collapse</span>
+                  <span>
+                    Collapse
+                  </span>
                 </>
               )}
+
             </button>
+
           </div>
+
 
           {/* =================================================
               FOOTER
@@ -367,31 +517,38 @@ export default function AdminLayout() {
               ${collapsed ? "px-2" : "px-6"}
             `}
           >
+
             {!collapsed ? (
               <p className="cf-mono text-[8px] text-[#a0aaae]">
-                V1.0 · BUILT FOR CALINOVA
+                V1.0 · BUILT FOR CALIFOLIO
               </p>
             ) : (
-              <p className="cf-mono text-[8px] text-[#a0aaae] text-center">
+              <p
+                className="
+                  cf-mono
+                  text-[8px]
+                  text-[#a0aaae]
+                  text-center
+                "
+              >
                 V1.0
               </p>
             )}
+
           </div>
 
         </aside>
 
+
         {/* =====================================================
             MAIN COLUMN
-
-            IMPORTANT:
-            h-screen + overflow-hidden on root
-            overflow-y-auto ONLY here.
         ====================================================== */}
 
         <div className="flex-1 min-w-0 h-screen flex flex-col">
 
           {/* =================================================
               HEADER
+              SAME 72px HEIGHT AS GUEST
           ================================================== */}
 
           <header
@@ -409,10 +566,21 @@ export default function AdminLayout() {
             "
           >
 
-            {/* Left */}
-            <div className="flex items-center gap-3 min-w-0">
+            {/* =================================================
+                LEFT
+            ================================================== */}
 
-              {/* Mobile menu */}
+            <div
+              className="
+                flex
+                items-center
+                gap-3
+                min-w-0
+              "
+            >
+
+              {/* MOBILE MENU */}
+
               <button
                 onClick={() => setMobileOpen(true)}
                 className="
@@ -426,11 +594,16 @@ export default function AdminLayout() {
                   text-[#5f6d73]
                   hover:bg-gray-100
                 "
+                aria-label="Open menu"
               >
                 <Menu size={19} />
               </button>
 
+
+              {/* HEADER TITLE */}
+
               <div className="min-w-0">
+
                 <h1
                   className="
                     cf-display
@@ -444,17 +617,41 @@ export default function AdminLayout() {
                   Admin Console
                 </h1>
 
-                <p className="hidden sm:block text-[11px] text-[#8a969b] mt-0.5">
+                <p
+                  className="
+                    hidden
+                    sm:block
+                    text-[11px]
+                    text-[#8a969b]
+                    mt-0.5
+                  "
+                >
                   Manage your CaliFolio platform
                 </p>
+
               </div>
 
             </div>
 
-            {/* Right */}
-            <div className="flex items-center gap-3 sm:gap-4 shrink-0">
 
-              {/* Admin pill */}
+            {/* =================================================
+                RIGHT
+            ================================================== */}
+
+            <div
+              className="
+                flex
+                items-center
+                gap-3
+                sm:gap-4
+                shrink-0
+              "
+            >
+
+              {/* =================================================
+                  ADMIN PILL
+              ================================================== */}
+
               <span
                 className="
                   hidden
@@ -475,26 +672,23 @@ export default function AdminLayout() {
               </span>
 
 
+<div className="min-w-0 leading-tight">
+  <p
+    className="
+      text-[12px]
+      font-semibold
+      text-[#1d292e]
+      truncate
+    "
+  >
+    {fullName}
+  </p>
+</div>
 
-              <div
-                className="
-                  w-8
-                  h-8
-                  rounded-full
-                  flex
-                  items-center
-                  justify-center
-                  text-[9px]
-                  font-bold
-                  text-white
-                "
-                style={{
-                  background:
-                    "linear-gradient(135deg, #0097c1, #123b43)",
-                }}
-              >
-                SO
-              </div>
+
+              {/* =================================================
+                  LOGOUT
+              ================================================== */}
 
               <button
                 onClick={() => {
@@ -526,10 +720,11 @@ export default function AdminLayout() {
 
           </header>
 
+
           {/* =================================================
               PAGE CONTENT
 
-              ONLY THIS AREA SCROLLS.
+              ONLY THIS AREA SCROLLS
           ================================================== */}
 
           <main
