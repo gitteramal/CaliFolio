@@ -11,7 +11,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL;
 const BRAND = "#0097c1";
 
 export default function SoftwareShowcasePage() {

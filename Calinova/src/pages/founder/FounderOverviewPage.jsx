@@ -8,7 +8,8 @@ export default function FounderOverviewPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const API_URL = import.meta.env.VITE_API_URL;
+  
   useEffect(() => {
     fetchMyProducts();
   }, []);
@@ -25,7 +26,7 @@ export default function FounderOverviewPage() {
       }
 
       const res = await fetch(
-        "http://127.0.0.1:8000/products/founder/my-products",
+        `${API_URL}/products/founder/my-products`,
         {
           method: "GET",
           headers: {

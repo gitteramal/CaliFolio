@@ -8,9 +8,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
+ 
   const navigate = useNavigate();
-
+  
+  const API_URL = import.meta.env.VITE_API_URL;
+  
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -19,7 +21,7 @@ export default function LoginPage() {
 
     try {
       const res = await fetch(
-        "http://127.0.0.1:8000/auth/login",
+        `${API_URL}/auth/login`,
         {
           method: "POST",
           headers: {

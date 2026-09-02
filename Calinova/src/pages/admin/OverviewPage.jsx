@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 const BRAND = "#0097c1";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function OverviewPage() {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ export default function OverviewPage() {
     try {
       const token = sessionStorage.getItem("access_token");
       const response = await fetch(
-        "http://127.0.0.1:8000/users/founders",
+        `${API_URL}/users/founders`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -99,7 +100,7 @@ export default function OverviewPage() {
       if (!token) return;
 
       const res = await fetch(
-        "http://127.0.0.1:8000/products/admin/published",
+        `${API_URL}/products/admin/published`,
         {
           method: "GET",
           headers: {
@@ -140,7 +141,7 @@ useEffect(() => {
       const token = sessionStorage.getItem("access_token");
 
       const res = await fetch(
-        "http://127.0.0.1:8000/products/admin/pending-review",
+        `${API_URL}/products/admin/pending-review`,
         {
           method: "GET",
           headers: {
@@ -174,7 +175,7 @@ useEffect(() => {
     const token = sessionStorage.getItem("access_token");
 
     const res = await fetch(
-      "http://127.0.0.1:8000/products/admin/drafts",
+      `${API_URL}/products/admin/drafts`,
       {
         method: "GET",
         headers: {
@@ -237,7 +238,7 @@ useEffect(() => {
       // =====================================================
 
       const res = await fetch(
-        "http://127.0.0.1:8000/products/admin/",
+        `${API_URL}/products/admin/`,
         {
           method: "POST",
           headers: {
@@ -271,7 +272,7 @@ useEffect(() => {
       // =====================================================
 
       const assignResponse = await fetch(
-        `http://127.0.0.1:8000/products/admin/${data.id}/assign-founder`,
+        `${API_URL}/products/admin/${data.id}/assign-founder`,
         {
           method: "PATCH",
           headers: {
@@ -366,7 +367,7 @@ useEffect(() => {
         throw new Error("You are not authenticated. Please log in again.");
       }
 
-      const res = await fetch("http://127.0.0.1:8000/users/", {
+      const res = await fetch(`${API_URL}/users/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

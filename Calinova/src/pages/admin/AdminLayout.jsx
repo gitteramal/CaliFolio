@@ -12,7 +12,7 @@ import {
 import { NavLink, Outlet } from "react-router-dom";
 
 const BRAND = "#0097c1";
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const NAV_ITEMS = [
   {

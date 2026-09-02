@@ -10,7 +10,7 @@ import {
   useParams,
 } from "react-router-dom";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ProductEditPage() {
   const navigate = useNavigate();
@@ -33,6 +33,8 @@ export default function ProductEditPage() {
     stage: true,
     origin: true,
   });
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     async function loadProduct() {

@@ -12,7 +12,7 @@ import {
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
 const BRAND = "#0097c1";
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL;
 const SEEN_ANSWER_IDS_KEY = "calinova_seen_answer_ids";
 
 function getSeenAnswerIds() {
