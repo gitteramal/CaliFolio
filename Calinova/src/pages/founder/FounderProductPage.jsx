@@ -25,6 +25,19 @@ const [submitting, setSubmitting] = useState(false);
 const [error, setError] = useState("");
 const [toast, setToast] = useState(null);
 
+function hasInvalidUrl() {
+  const urlFields = [
+    "demo_video_url",
+    "pitch_deck_url",
+    "website_url",
+    "thumbnail_url",
+  ];
+
+  return urlFields.some(
+    (field) => formData[field]?.trim() && !isSafeUrl(formData[field])
+  );
+}
+
 function showToast(message, type = "success") {
   setToast({
     message,
@@ -214,6 +227,11 @@ function getStatusClasses(status) {
 async function handleSave(e) {
   e.preventDefault();
 
+    if (hasInvalidUrl()) {
+    setError("Please fix the invalid URL fields before saving.");
+    return;
+  }
+
   if (isPendingReview) {
     showToast("This product is already pending review.", "warning");
     return;
@@ -273,6 +291,12 @@ async function handleSave(e) {
 
 
 async function handleSubmitForReview() {
+
+    if (hasInvalidUrl()) {
+    setError("Please fix the invalid URL fields before submitting for review.");
+    return;
+  }
+  
   if (saving || submitting) {
     return;
   }
@@ -1093,6 +1117,20 @@ function ReadOnlyField({
   );
 }
 
+function isSafeUrl(value) {
+  if (!value?.trim()) return true; // empty is allowed
+
+  try {
+    const url = new URL(value.trim());
+
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      !!url.hostname
+    );
+  } catch {
+    return false;
+  }
+}
 
 /* =========================================================
    LINK FIELD
@@ -1106,18 +1144,22 @@ function LinkField({
   onChange,
   placeholder,
 }) {
+  const hasValue = value?.trim() !== "";
+  const isValid = isSafeUrl(value);
+  const hasError = hasValue && !isValid;
+
   return (
     <div>
-
       <label className="block text-xs font-semibold text-gray-700 mb-2">
         {label}
       </label>
 
       <div className="relative">
-
         <Icon
           size={17}
-          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+          className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${
+            hasError ? "text-red-400" : "text-gray-400"
+          }`}
         />
 
         <input
@@ -1126,12 +1168,19 @@ function LinkField({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="w-full h-11 pl-10 pr-3.5 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10 transition"
+          aria-invalid={hasError}
+          className={`w-full h-11 pl-10 pr-3.5 rounded-lg border bg-gray-50 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition
+            ${
+              hasError
+                ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/10"
+                : "border-gray-200 focus:bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/10"
+            }
+          `}
         />
 
-        {value && (
+        {isValid && hasValue && (
           <a
-            href={value}
+            href={value.trim()}
             target="_blank"
             rel="noopener noreferrer"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-cyan-600"
@@ -1140,9 +1189,13 @@ function LinkField({
             <ExternalLink size={15} />
           </a>
         )}
-
       </div>
 
+      {hasError && (
+        <p className="mt-1.5 text-xs text-red-600">
+          Please enter a valid URL starting with http:// or https://
+        </p>
+      )}
     </div>
   );
 }

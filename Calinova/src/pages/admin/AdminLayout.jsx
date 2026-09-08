@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Boxes,
+  UsersRound,
   ShieldCheck,
   LogOut,
   ChevronsLeft,
@@ -25,6 +26,11 @@ const NAV_ITEMS = [
     path: "/admin/software",
     label: "Software Showcase",
     icon: Boxes,
+  },
+  {
+    path: "/admin/guests",
+    label: "Guests & Access",
+    icon: UsersRound,
   },
 ];
 

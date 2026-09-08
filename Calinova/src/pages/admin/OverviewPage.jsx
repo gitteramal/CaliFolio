@@ -265,7 +265,6 @@ useEffect(() => {
         );
       }
 
-      console.log("Created draft:", data);
 
       // =====================================================
       // STEP 2: ASSIGN FOUNDER
@@ -296,10 +295,6 @@ useEffect(() => {
         );
       }
 
-      console.log(
-        "Draft assigned to founder:",
-        assignedProduct
-      );
 
       // =====================================================
       // SUCCESS
@@ -433,21 +428,22 @@ useEffect(() => {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5 mb-7">
 
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: BRAND }}
-            />
+<div className="flex items-center gap-2 mb-2">
 
-            <span className="cf-mono text-[10px] tracking-[0.16em] text-gray-400 uppercase">
-              Platform Overview
-            </span>
-          </div>
 
-          <h2 className="cf-display font-bold text-[25px] sm:text-[28px] tracking-[-0.03em] text-gray-900">
-            Admin Dashboard
-          </h2>
+  <span className="cf-mono text-[10px] tracking-[0.16em] text-gray-400 uppercase">
+    {new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })}
+  </span>
+</div>
 
+<h2 className="cf-display font-bold text-[25px] sm:text-[28px] tracking-[-0.03em] text-gray-900">
+  Admin Overview
+</h2>
           <p className="text-[13px] sm:text-[14px] text-gray-500 mt-1.5">
             Overview of your CaliFolio platform performance and metrics.
           </p>

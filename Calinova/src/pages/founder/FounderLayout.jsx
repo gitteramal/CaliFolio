@@ -58,13 +58,14 @@ export default function FounderLayout() {
   // LOGOUT
   // =========================================================
 
-  function logout() {
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("token_type");
-    sessionStorage.removeItem("role");
-    sessionStorage.removeItem("full_name");
-    navigate("/");
-  }
+function logout() {
+  sessionStorage.removeItem("access_token");
+  sessionStorage.removeItem("token_type");
+  sessionStorage.removeItem("role");
+  sessionStorage.removeItem("full_name");
+
+  window.location.replace("/login")
+}
 
   // =========================================================
   // SIDEBAR WIDTH
@@ -422,48 +423,6 @@ export default function FounderLayout() {
                 LOGOUT
             ================================================== */}
 
-            <button
-              type="button"
-              onClick={logout}
-              title={
-                collapsed
-                  ? "Logout"
-                  : undefined
-              }
-              className={`
-                flex
-                items-center
-                ${
-                  collapsed
-                    ? "justify-center"
-                    : "justify-start gap-3"
-                }
-                w-full
-                min-h-[40px]
-                px-3
-                rounded-[7px]
-                text-[12px]
-                font-medium
-                text-[#77858a]
-                hover:bg-[#e9edef]
-                hover:text-[#1d292e]
-                transition
-              `}
-            >
-
-              <LogOut
-                size={17}
-                strokeWidth={1.8}
-                className="shrink-0"
-              />
-
-              {!collapsed && (
-                <span>
-                  Logout
-                </span>
-              )}
-
-            </button>
 
 
             {/* =================================================
@@ -631,7 +590,7 @@ export default function FounderLayout() {
                     truncate
                   "
                 >
-                  Founder Dashboard
+                  Founder Console
                 </h1>
 
                 <p

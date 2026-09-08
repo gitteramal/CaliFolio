@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict
+from urllib.parse import urlparse
+
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 # =========================================================
@@ -102,12 +104,49 @@ class FounderProductUpdate(BaseModel):
     website_url: str | None = None
     thumbnail_url: str | None = None
 
+    # -------------------------
+    # URL SECURITY VALIDATION
+    # -------------------------
+
+    @field_validator(
+        "demo_video_url",
+        "pitch_deck_url",
+        "website_url",
+        "thumbnail_url",
+    )
+    @classmethod
+    def validate_url(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip()
+
+        # Allow empty fields
+        if not value:
+            return None
+
+        parsed = urlparse(value)
+
+        # Only allow HTTP and HTTPS
+        if parsed.scheme.lower() not in {"http", "https"}:
+            raise ValueError(
+                "URL must use http:// or https://"
+            )
+
+        # URL must contain a hostname
+        if not parsed.netloc:
+            raise ValueError("Invalid URL")
+
+        return value
+
+
 # =========================================================
 # REQUEST CHANGES - ADMIN
 # =========================================================
 
 class RequestChanges(BaseModel):
     review_note: str
+
 
 # =========================================================
 # PRODUCT RESPONSE
@@ -183,6 +222,11 @@ class ProductResponse(BaseModel):
     status: str
     founder_id: int | None
     review_note: str | None
+    is_edited: bool
+    pending_edits: dict | None
 
+    # -------------------------
     # Pydantic v2
+    # -------------------------
+
     model_config = ConfigDict(from_attributes=True)

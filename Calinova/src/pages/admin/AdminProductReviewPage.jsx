@@ -366,6 +366,14 @@ export default function AdminProductReviewPage() {
                 Pending Review
               </span>
 
+              {/* Edited badge — shown when this is a re-review of a published product */}
+              {product.is_edited && (
+                <span className="inline-flex items-center gap-2 rounded-md bg-orange-500/10 border border-orange-400/25 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-orange-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+                  Edited
+                </span>
+              )}
+
               {product.stage && (
                 <span className="inline-flex items-center gap-2 rounded-md bg-[#143b3d] border border-[#286063] px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#a0d9d4]">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#5ee4c7]" />
@@ -518,6 +526,18 @@ export default function AdminProductReviewPage() {
                 </div>
 
               </section>
+
+
+              {/* ============================================
+                  PROPOSED CHANGES — only shown for re-reviews
+              ============================================= */}
+
+              {product.is_edited && product.pending_edits && (
+                <ProposedChangesPanel
+                  current={product}
+                  proposed={product.pending_edits}
+                />
+              )}
 
             </div>
 

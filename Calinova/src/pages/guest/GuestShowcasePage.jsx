@@ -129,22 +129,19 @@ export default function GuestShowcasePage() {
       <div className="mb-8">
 
         <div className="flex items-center gap-2 text-[#82909A]">
-          <Boxes
-            size={15}
-            strokeWidth={1.8}
-          />
 
-          <span
-            className="
-              font-mono
-              text-[10px]
-              tracking-[0.22em]
-              uppercase
-            "
-          >
-            Software Showcase
-          </span>
-        </div>
+
+
+
+  <span className="cf-mono text-[10px] tracking-[0.16em] text-gray-400 uppercase">
+    {new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })}
+  </span>
+</div>
 
 
         <div className="mt-3 flex items-end justify-between gap-6">
@@ -176,25 +173,34 @@ export default function GuestShowcasePage() {
           </div>
 
 
-          {!loading && !error && (
-            <div className="hidden sm:block">
+{!loading && !error && (
+  <div
+    className="
+      self-start
+      sm:self-auto
+      inline-flex
+      items-center
+      gap-2
+      px-3.5
+      py-2
+      rounded-lg
+      bg-white
+      border
+      border-gray-200
+      shadow-[0_2px_8px_rgba(15,23,42,0.04)]
+    "
+  >
+    <Boxes
+      size={16}
+      className="text-[#0097c1]"
+      strokeWidth={2}
+    />
 
-              <span
-                className="
-                  font-mono
-                  text-[10px]
-                  tracking-[0.18em]
-                  text-[#8A969E]
-                "
-              >
-                {products.length}{" "}
-                {products.length === 1
-                  ? "PRODUCT"
-                  : "PRODUCTS"}
-              </span>
-
-            </div>
-          )}
+    <span className="text-[13px] font-semibold text-gray-700">
+      {products.length} product{products.length !== 1 ? "s" : ""}
+    </span>
+  </div>
+)}
 
         </div>
 

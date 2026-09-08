@@ -100,14 +100,14 @@ export default function GuestLayout() {
   // LOGOUT
   // =========================================================
 
-  function handleLogout() {
-    sessionStorage.removeItem("access_token");
-    sessionStorage.removeItem("token_type");
-    sessionStorage.removeItem("role");
-    sessionStorage.removeItem("full_name");
+function handleLogout() {
+  sessionStorage.removeItem("access_token");
+  sessionStorage.removeItem("token_type");
+  sessionStorage.removeItem("role");
+  sessionStorage.removeItem("full_name");
 
-    navigate("/");
-  }
+  window.location.replace("/login")
+}
 
   // =========================================================
   // SIDEBAR WIDTH
@@ -456,64 +456,7 @@ export default function GuestLayout() {
                   SAVED
               ================================================== */}
 
-              <NavLink
-                to="/guest/saved"
-                title={
-                  collapsed
-                    ? "Saved"
-                    : undefined
-                }
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) => `
-                  group
-                  flex
-                  items-center
-                  ${
-                    collapsed
-                      ? "justify-center"
-                      : "gap-3"
-                  }
-                  w-full
-                  min-h-[42px]
-                  px-3
-                  rounded-[7px]
-                  transition-all
-                  duration-150
 
-                  ${
-                    isActive
-                      ? "bg-black text-white shadow-sm"
-                      : "text-[#64747b] hover:bg-[#e9edef] hover:text-[#1d292e]"
-                  }
-                `}
-              >
-                {({ isActive }) => (
-                  <>
-                    <Bookmark
-                      size={17}
-                      strokeWidth={
-                        isActive ? 2.2 : 1.8
-                      }
-                      className="shrink-0"
-                    />
-
-                    {!collapsed && (
-                      <span
-                        className={`
-                          text-[13px]
-                          ${
-                            isActive
-                              ? "font-medium text-white"
-                              : "font-medium"
-                          }
-                        `}
-                      >
-                        Saved
-                      </span>
-                    )}
-                  </>
-                )}
-              </NavLink>
 
 
               {/* =================================================
@@ -544,48 +487,6 @@ export default function GuestLayout() {
                 LOGOUT
             ================================================== */}
 
-            <button
-              type="button"
-              onClick={handleLogout}
-              title={
-                collapsed
-                  ? "Logout"
-                  : undefined
-              }
-              className={`
-                flex
-                items-center
-                ${
-                  collapsed
-                    ? "justify-center"
-                    : "justify-start gap-3"
-                }
-                w-full
-                min-h-[40px]
-                px-3
-                rounded-[7px]
-                text-[12px]
-                font-medium
-                text-[#77858a]
-                hover:bg-[#e9edef]
-                hover:text-[#1d292e]
-                transition
-              `}
-            >
-
-              <LogOut
-                size={17}
-                strokeWidth={1.8}
-                className="shrink-0"
-              />
-
-              {!collapsed && (
-                <span>
-                  Logout
-                </span>
-              )}
-
-            </button>
 
 
             {/* =================================================
@@ -753,7 +654,7 @@ export default function GuestLayout() {
                     truncate
                   "
                 >
-                  Guest Showcase
+                  Guest Console
                 </h1>
 
                 <p

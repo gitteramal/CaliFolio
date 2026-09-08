@@ -25,6 +25,10 @@ class UserResponse(BaseModel):
     }
 
 
+class GuestStatusUpdate(BaseModel):
+    is_active: bool
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str

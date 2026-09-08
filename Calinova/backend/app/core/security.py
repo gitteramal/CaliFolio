@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta, timezone
+import hashlib
+import secrets
 
 from jose import jwt
 from passlib.context import CryptContext
@@ -44,3 +46,12 @@ def create_access_token(data: dict):
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
+    
+def generate_password_reset_token():
+    return secrets.token_urlsafe(32)
+
+
+def hash_reset_token(token: str) -> str:
+    return hashlib.sha256(
+        token.encode("utf-8")
+    ).hexdigest()

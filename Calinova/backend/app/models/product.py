@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import (
+    Boolean,
     Column,
     Integer,
     String,
@@ -256,6 +257,20 @@ class Product(Base):
     review_note = Column(
     Text,
     nullable=True
+    )
+
+    # Flag: published product has pending edits awaiting re-review
+    is_edited = Column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+
+    # Founder's proposed changes (stored while product stays published)
+    pending_edits = Column(
+        JSON,
+        nullable=True,
+        default=None,
     )
 
     created_at = Column(

@@ -104,18 +104,21 @@ export default function FounderOverviewPage() {
 
           <div>
 
-            <div className="flex items-center gap-2 mb-2">
+<div className="flex items-center gap-2 mb-2">
 
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0097c1]" />
 
-              <p className="cf-mono text-[10px] uppercase tracking-[0.18em] text-gray-400">
-                Portfolio Management
-              </p>
-
-            </div>
+  <span className="cf-mono text-[10px] tracking-[0.16em] text-gray-400 uppercase">
+    {new Date().toLocaleDateString("en-US", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })}
+  </span>
+</div>
 
             <h1 className="cf-display font-bold text-[26px] sm:text-[30px] tracking-[-0.025em] text-gray-950">
-              Product Dashboard
+              Founder Overview
             </h1>
 
             <p className="text-[14px] sm:text-[15px] text-gray-500 mt-2">

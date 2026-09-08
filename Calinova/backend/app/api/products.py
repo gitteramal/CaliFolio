@@ -237,6 +237,42 @@ def approve_product(
     product.status = "published"
     product.review_note = None
 
+    # ----------------------------------------------------------
+    # If this is a re-review of an edited published product,
+    # promote the pending edits into the main product fields.
+    # ----------------------------------------------------------
+    if product.is_edited and product.pending_edits:
+        edits = product.pending_edits
+        product.description = edits.get("description")
+        product.problem = edits.get("problem")
+        product.how_it_works = edits.get("how_it_works")
+        product.ideal_customer_profile = edits.get("ideal_customer_profile")
+        product.value_proposition = edits.get("value_proposition")
+        product.highlights = edits.get("highlights")
+        product.company = edits.get("company")
+        product.headquarters = edits.get("headquarters")
+        product.founded = edits.get("founded")
+        product.team_size = edits.get("team_size")
+        product.deployment = edits.get("deployment")
+        product.pricing = edits.get("pricing")
+        product.founders_team = edits.get("founders_team")
+        product.key_clients = edits.get("key_clients")
+        product.roadmap = edits.get("roadmap")
+        product.compliance = edits.get("compliance")
+        product.integrations = edits.get("integrations")
+        product.users = edits.get("users")
+        product.customers = edits.get("customers")
+        product.traction = edits.get("traction")
+        product.funds_raised = edits.get("funds_raised")
+        product.demo_video_url = edits.get("demo_video_url")
+        product.pitch_deck_url = edits.get("pitch_deck_url")
+        product.website_url = edits.get("website_url")
+        product.thumbnail_url = edits.get("thumbnail_url")
+
+    # Clear the pending edits state
+    product.is_edited = False
+    product.pending_edits = None
+
     db.commit()
     db.refresh(product)
 
@@ -658,10 +694,51 @@ def update_founder_details(
             detail="Product not found or you do not have access to it.",
         )
 
-    if product.status != "draft":
+    # -------------------------------------------------------
+    # PUBLISHED: write changes into pending_edits so guests
+    # continue to see the approved live version.
+    # -------------------------------------------------------
+    if product.status == "published":
+        product.pending_edits = {
+            "description": product_data.description,
+            "problem": product_data.problem,
+            "how_it_works": product_data.how_it_works,
+            "ideal_customer_profile": product_data.ideal_customer_profile,
+            "value_proposition": product_data.value_proposition,
+            "highlights": product_data.highlights,
+            "company": product_data.company,
+            "headquarters": product_data.headquarters,
+            "founded": product_data.founded,
+            "team_size": product_data.team_size,
+            "deployment": product_data.deployment,
+            "pricing": product_data.pricing,
+            "founders_team": product_data.founders_team,
+            "key_clients": product_data.key_clients,
+            "roadmap": product_data.roadmap,
+            "compliance": product_data.compliance,
+            "integrations": product_data.integrations,
+            "users": product_data.users,
+            "customers": product_data.customers,
+            "traction": product_data.traction,
+            "funds_raised": product_data.funds_raised,
+            "demo_video_url": product_data.demo_video_url,
+            "pitch_deck_url": product_data.pitch_deck_url,
+            "website_url": product_data.website_url,
+            "thumbnail_url": product_data.thumbnail_url,
+        }
+        product.is_edited = True
+
+        db.commit()
+        db.refresh(product)
+        return product
+
+    # -------------------------------------------------------
+    # DRAFT / CHANGES_REQUESTED: write directly to main fields
+    # -------------------------------------------------------
+    if product.status not in ("draft", "changes_requested"):
         raise HTTPException(
             status_code=400,
-            detail="Only draft products can be edited.",
+            detail="Only draft or published products can be edited.",
         )
 
     # Product details
@@ -734,10 +811,11 @@ def submit_for_review(
             detail="Product not found or you do not have access to it.",
         )
 
-    if product.status != "draft":
+    # Allow submission from draft OR from published (when founder has pending edits)
+    if product.status not in ("draft", "published"):
         raise HTTPException(
             status_code=400,
-            detail="Only draft products can be submitted for review.",
+            detail="Only draft or published (edited) products can be submitted for review.",
         )
 
     product.review_note = None

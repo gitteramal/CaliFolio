@@ -8,7 +8,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
- 
+  const [showContactAdmin, setShowContactAdmin] = useState(false);
+
   const navigate = useNavigate();
   
   const API_URL = import.meta.env.VITE_API_URL;
@@ -35,7 +36,6 @@ export default function LoginPage() {
       );
 
       const data = await res.json();
-      console.log("LOGIN RESPONSE:", data);
 
       if (!res.ok) {
         throw new Error(
@@ -567,17 +567,19 @@ export default function LoginPage() {
                 </label>
 
 
-                <a
-                  href="/forgot-password"
-                  className="
-                    text-[11px]
-                    text-[#77878E]
-                    transition
-                    hover:text-[#101A21]
-                  "
-                >
-                  Forgot password?
-                </a>
+<button
+  type="button"
+  onClick={() => setShowContactAdmin(true)}
+  className="
+    text-[11px]
+    text-[#77878E]
+    transition
+    hover:text-[#101A21]
+    hover:underline
+  "
+>
+  Forgot password?
+</button>
              
               </div>
 
@@ -734,7 +736,52 @@ export default function LoginPage() {
         </div>
 
       </section>
+{showContactAdmin && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
 
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-[16px] font-semibold text-[#101A21]">
+          Password Reset
+        </h3>
+
+        <button
+          type="button"
+          onClick={() => setShowContactAdmin(false)}
+          className="text-[20px] leading-none text-[#77878E] hover:text-[#101A21]"
+        >
+          ×
+        </button>
+      </div>
+
+      <p className="text-[13px] leading-6 text-[#66757C]">
+        For security reasons, password resets are handled by the
+        administrator. Please contact your administrator to request
+        a password reset.
+      </p>
+
+      <button
+        type="button"
+        onClick={() => setShowContactAdmin(false)}
+        className="
+          mt-6
+          w-full
+          rounded-xl
+          bg-[#00688b]
+          py-2.5
+          text-[13px]
+          font-semibold
+          text-white
+          transition
+          hover:bg-[#005873]
+        "
+      >
+        Understood
+      </button>
+
+    </div>
+  </div>
+)}
     </div>
   );
 }
