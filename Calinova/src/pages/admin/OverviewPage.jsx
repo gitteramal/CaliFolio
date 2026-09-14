@@ -1065,55 +1065,53 @@ useEffect(() => {
 
               {/* Product Name */}
 
-              <FormField label="Product Name">
+              <FormField label="Product Name" required>
 
                 <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  placeholder="e.g. GridSense"
-                  className={inputClass}
-                />
+  type="text"
+  name="name"
+  value={formData.name}
+  onChange={handleChange}
+  required
+  placeholder="e.g. GridSense"
+  className={inputClass}
+/>
 
               </FormField>
 
 
               {/* Version */}
 
-              <FormField label="Version">
-
-                <input
-                  type="text"
-                  name="version"
-                  value={formData.version}
-                  onChange={handleChange}
-                  placeholder="e.g. 1.0.0"
-                  className={inputClass}
-                />
-
-              </FormField>
+<FormField label="Version" required>
+  <input
+    type="text"
+    name="version"
+    value={formData.version}
+    onChange={handleChange}
+    required
+    placeholder="e.g. 1.0.0"
+    className={inputClass}
+  />
+</FormField>
 
 
               {/* One Liner */}
 
-              <FormField label="One-liner">
+<FormField label="One-liner" required>
+  <textarea
+    name="one_liner"
+    value={formData.one_liner}
+    onChange={handleChange}
+    required
+    rows={3}
+    placeholder="What does this product do?"
+    className={`${inputClass} resize-none`}
+  />
 
-                <textarea
-                  name="one_liner"
-                  value={formData.one_liner}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="What does this product do?"
-                  className={`${inputClass} resize-none`}
-                />
-
-                <p className="text-[11px] text-gray-400 mt-1.5">
-                  This is what guests will read first.
-                </p>
-
-              </FormField>
+  <p className="text-[11px] text-gray-400 mt-1.5">
+    This is what guests will read first.
+  </p>
+</FormField>
 
 
               {/* Stage + Origin */}
@@ -1559,19 +1557,23 @@ function StatCard({
 // FORM FIELD
 // =============================================================
 
-function FormField({ label, children }) {
+
+function FormField({ label, children, required = false }) {
   return (
     <div>
-
       <label className="block text-[12px] font-semibold text-gray-700 mb-1.5">
         {label}
+        {required && (
+          <span className="text-red-500 ml-1">*</span>
+        )}
       </label>
 
       {children}
-
     </div>
   );
 }
+
+
 
 
 // =============================================================
