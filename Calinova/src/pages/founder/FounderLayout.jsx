@@ -8,6 +8,8 @@ import {
   X,
 } from "lucide-react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import AIChatbot from "../../components/AIChatbot";
+
 
 const BRAND = "#0097c1";
 
@@ -714,6 +716,8 @@ function logout() {
           </main>
 
         </div>
+
+            <AIChatbot />
 
       </div>
     </>

@@ -6,6 +6,10 @@ from app.api.auth import router as auth_router
 from app.api.users import router as users_router
 from app.api import product_questions
 from app.api import password_reset
+from app.api import ai_test
+from app.api import ai
+
+
 from app.models.product_question import ProductQuestion
 from app.models.product_question_answer import ProductQuestionAnswer
 
@@ -14,6 +18,9 @@ from app.db.database import Base, engine
 from app.models.user import User
 from app.models.product import Product
 from app.models.password_reset_token import PasswordResetToken
+from app.models.product_embedding import ProductEmbedding
+
+
 
 
 
@@ -67,6 +74,11 @@ app.include_router(users_router)
 app.include_router(product_questions.router)
 
 app.include_router(password_reset.router)
+
+app.include_router(ai_test.router)
+
+app.include_router(ai.router)
+
 
 # =========================================================
 # ROOT

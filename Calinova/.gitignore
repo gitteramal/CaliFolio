@@ -37,6 +37,10 @@ backend/**/*.pyc
 backend/.env
 backend/.env.*
 !backend/.env.example
+# Environment variables
+.env
+*.env
+backend/.env
 
 # =========================
 # Node / React Frontend

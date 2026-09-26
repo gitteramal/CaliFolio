@@ -43,6 +43,13 @@ export default function LoginPage() {
         );
       }
 
+console.log("LOGIN RESPONSE:", {
+  access_token: data.access_token,
+  role: data.role,
+  full_name: data.full_name,
+  token_type: data.token_type,
+});
+
       // Save authentication
       sessionStorage.setItem(
         "access_token",
@@ -696,7 +703,7 @@ export default function LoginPage() {
                 </p>
               </div>
             )}
-
+            
 
             {/* =================================================
                 SIGN IN
@@ -781,6 +788,7 @@ export default function LoginPage() {
 
     </div>
   </div>
+  
 )}
     </div>
   );

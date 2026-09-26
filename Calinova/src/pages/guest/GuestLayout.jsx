@@ -10,6 +10,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import AIChatbot from "../../components/AIChatbot";
 
 const BRAND = "#0097c1";
 const API_URL = import.meta.env.VITE_API_URL;
@@ -779,7 +780,7 @@ function handleLogout() {
           </main>
 
         </div>
-
+            <AIChatbot />
       </div>
     </>
   );

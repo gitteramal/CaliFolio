@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
+import AIChatbot from "../../components/AIChatbot";
 
 const BRAND = "#0097c1";
 const API_URL = import.meta.env.VITE_API_URL;
@@ -749,7 +750,7 @@ export default function AdminLayout() {
           </main>
 
         </div>
-
+    <AIChatbot />
       </div>
     </>
   );
